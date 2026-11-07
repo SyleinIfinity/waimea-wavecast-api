@@ -1,0 +1,10 @@
+# EXAMPLE ONLY: requires production WIF, Artifact Registry, VM deployment authentication.
+# Do not turn on until CI passes and rollback / migrations are documented.
+name: backend-deploy
+on:
+  workflow_dispatch:
+jobs:
+  instructions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Configure authenticated build + Artifact Registry push + VM pull/restart/healthcheck before using production CI/CD.'

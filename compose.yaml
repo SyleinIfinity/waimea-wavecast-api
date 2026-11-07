@@ -1,0 +1,60 @@
+name: waimea-wavecast-backend
+x-worker: &worker
+  build:
+    context: .
+    dockerfile: Dockerfile
+  env_file:
+    - .env
+  restart: unless-stopped
+  networks: [waimea-internal]
+
+services:
+  # For local development only. Cloud SQL takes its place in production.
+  postgres-local:
+    image: postgres:17-alpine
+    profiles: [devdb]
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-waimea_wavecast}
+      POSTGRES_USER: ${POSTGRES_USER:-waimea}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-only-change-me}
+    volumes:
+      - postgres_dev:/var/lib/postgresql/data
+    ports:
+      - '127.0.0.1:5433:5432'
+    networks: [waimea-internal]
+
+  database-api:
+    <<: *worker
+    command: uvicorn services.database_api.app.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - '127.0.0.1:8000:8000'
+
+  ingestion:
+    <<: *worker
+    command: uvicorn services.ingestion.app.main:app --host 0.0.0.0 --port 8000
+
+  preprocessing:
+    <<: *worker
+    command: uvicorn services.preprocessing.app.main:app --host 0.0.0.0 --port 8000
+
+  analysis:
+    <<: *worker
+    command: uvicorn services.analysis.app.main:app --host 0.0.0.0 --port 8000
+
+  clustering:
+    <<: *worker
+    command: uvicorn services.clustering.app.main:app --host 0.0.0.0 --port 8000
+
+  prediction:
+    <<: *worker
+    command: uvicorn services.prediction.app.main:app --host 0.0.0.0 --port 8000
+
+  classification:
+    <<: *worker
+    command: uvicorn services.classification.app.main:app --host 0.0.0.0 --port 8000
+
+networks:
+  waimea-internal:
+
+volumes:
+  postgres_dev:

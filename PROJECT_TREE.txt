@@ -1,0 +1,165 @@
+waimea-wavecast-backend/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── deploy-compute-engine.example.yml
+├── artifacts/
+│   ├── models/
+│   │   └── .gitkeep
+│   ├── processed/
+│   │   └── .gitkeep
+│   └── raw/
+│       └── .gitkeep
+├── database/
+│   ├── migrations/
+│   │   └── 001_init.sql
+│   └── README.md
+├── deploy/
+│   ├── nginx/
+│   │   └── apiwaimea.conf
+│   ├── scripts/
+│   │   ├── backup.md
+│   │   ├── deploy.sh
+│   │   └── health-check.sh
+│   └── compose.prod.yaml
+├── docs/
+│   ├── api-contract.md
+│   ├── architecture.md
+│   ├── demo-checklist.md
+│   ├── deployment.md
+│   └── implementation-roadmap.md
+├── infra/
+│   └── terraform/
+│       ├── cloud_sql.tf
+│       ├── compute.tf
+│       ├── firewall.tf
+│       ├── iam.tf
+│       ├── monitoring.tf
+│       ├── network.tf
+│       ├── outputs.tf
+│       ├── providers.tf
+│       ├── README.md
+│       ├── storage.tf
+│       └── variables.tf
+├── notebooks/
+│   ├── 01_api_exploration/
+│   │   └── .gitkeep
+│   ├── 02_eda/
+│   │   └── .gitkeep
+│   ├── 03_clustering/
+│   │   └── .gitkeep
+│   ├── 04_prediction/
+│   │   └── .gitkeep
+│   └── 05_classification/
+│       └── .gitkeep
+├── services/
+│   ├── analysis/
+│   │   ├── app/
+│   │   │   ├── patterns/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   └── .gitkeep
+│   │   └── README.md
+│   ├── classification/
+│   │   ├── app/
+│   │   │   ├── inference/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   └── .gitkeep
+│   │   └── README.md
+│   ├── clustering/
+│   │   ├── app/
+│   │   │   ├── pipelines/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   └── .gitkeep
+│   │   └── README.md
+│   ├── database_api/
+│   │   ├── app/
+│   │   │   ├── repositories/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── routes/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   └── .gitkeep
+│   │   └── README.md
+│   ├── ingestion/
+│   │   ├── app/
+│   │   │   ├── network/
+│   │   │   │   ├── .gitkeep
+│   │   │   │   └── http_client.py
+│   │   │   ├── pipelines/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── providers/
+│   │   │   │   ├── .gitkeep
+│   │   │   │   ├── cdip.py
+│   │   │   │   ├── noaa.py
+│   │   │   │   └── open_meteo.py
+│   │   │   ├── scheduler/
+│   │   │   │   ├── .gitkeep
+│   │   │   │   └── polling.py
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   └── .gitkeep
+│   │   └── README.md
+│   ├── prediction/
+│   │   ├── app/
+│   │   │   ├── inference/
+│   │   │   │   └── .gitkeep
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── tests/
+│   │   │   └── .gitkeep
+│   │   └── README.md
+│   └── preprocessing/
+│       ├── app/
+│       │   ├── pipelines/
+│       │   │   └── .gitkeep
+│       │   ├── __init__.py
+│       │   └── main.py
+│       ├── tests/
+│       │   └── .gitkeep
+│       └── README.md
+├── shared/
+│   ├── config/
+│   │   ├── __init__.py
+│   │   └── settings.py
+│   ├── schemas/
+│   │   ├── __init__.py
+│   │   └── observation.py
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   └── timezone.py
+│   └── __init__.py
+├── storage/
+│   └── gcs_layout.md
+├── tests/
+│   ├── e2e/
+│   │   └── .gitkeep
+│   ├── integration/
+│   │   └── .gitkeep
+│   └── unit/
+│       ├── .gitkeep
+│       └── test_timezone.py
+├── training/
+│   ├── notebooks/
+│   │   └── .gitkeep
+│   └── scripts/
+│       └── .gitkeep
+├── .dockerignore
+├── .env.example
+├── .env.production.example
+├── .gitignore
+├── compose.yaml
+├── Dockerfile
+├── pyproject.toml
+└── README.md
