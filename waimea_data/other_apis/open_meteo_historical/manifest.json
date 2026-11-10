@@ -1,0 +1,1838 @@
+{
+  "months": {
+    "2005-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:50.388299+00:00",
+      "latest_timestamp_utc": "2005-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/January-data-2005.csv"
+    },
+    "2005-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:51.229946+00:00",
+      "latest_timestamp_utc": "2005-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2005/February-data-2005.csv"
+    },
+    "2005-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:52.068112+00:00",
+      "latest_timestamp_utc": "2005-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/March-data-2005.csv"
+    },
+    "2005-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:52.908445+00:00",
+      "latest_timestamp_utc": "2005-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2005/April-data-2005.csv"
+    },
+    "2005-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:53.746914+00:00",
+      "latest_timestamp_utc": "2005-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/May-data-2005.csv"
+    },
+    "2005-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:54.583683+00:00",
+      "latest_timestamp_utc": "2005-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2005/June-data-2005.csv"
+    },
+    "2005-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:55.421059+00:00",
+      "latest_timestamp_utc": "2005-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/July-data-2005.csv"
+    },
+    "2005-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:56.259131+00:00",
+      "latest_timestamp_utc": "2005-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/August-data-2005.csv"
+    },
+    "2005-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:57.099334+00:00",
+      "latest_timestamp_utc": "2005-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2005/September-data-2005.csv"
+    },
+    "2005-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:57.937423+00:00",
+      "latest_timestamp_utc": "2005-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/October-data-2005.csv"
+    },
+    "2005-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:58.784409+00:00",
+      "latest_timestamp_utc": "2005-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2005/November-data-2005.csv"
+    },
+    "2005-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:57:59.627229+00:00",
+      "latest_timestamp_utc": "2005-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2005/December-data-2005.csv"
+    },
+    "2006-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:00.466842+00:00",
+      "latest_timestamp_utc": "2006-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/January-data-2006.csv"
+    },
+    "2006-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:01.333056+00:00",
+      "latest_timestamp_utc": "2006-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2006/February-data-2006.csv"
+    },
+    "2006-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:02.205744+00:00",
+      "latest_timestamp_utc": "2006-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/March-data-2006.csv"
+    },
+    "2006-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:03.049845+00:00",
+      "latest_timestamp_utc": "2006-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2006/April-data-2006.csv"
+    },
+    "2006-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:03.890650+00:00",
+      "latest_timestamp_utc": "2006-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/May-data-2006.csv"
+    },
+    "2006-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:04.727050+00:00",
+      "latest_timestamp_utc": "2006-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2006/June-data-2006.csv"
+    },
+    "2006-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:05.566490+00:00",
+      "latest_timestamp_utc": "2006-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/July-data-2006.csv"
+    },
+    "2006-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:06.405054+00:00",
+      "latest_timestamp_utc": "2006-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/August-data-2006.csv"
+    },
+    "2006-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:07.240942+00:00",
+      "latest_timestamp_utc": "2006-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2006/September-data-2006.csv"
+    },
+    "2006-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:08.103266+00:00",
+      "latest_timestamp_utc": "2006-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/October-data-2006.csv"
+    },
+    "2006-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:08.972957+00:00",
+      "latest_timestamp_utc": "2006-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2006/November-data-2006.csv"
+    },
+    "2006-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:09.838528+00:00",
+      "latest_timestamp_utc": "2006-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2006/December-data-2006.csv"
+    },
+    "2007-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:10.695444+00:00",
+      "latest_timestamp_utc": "2007-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/January-data-2007.csv"
+    },
+    "2007-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:11.537869+00:00",
+      "latest_timestamp_utc": "2007-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2007/February-data-2007.csv"
+    },
+    "2007-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:12.377332+00:00",
+      "latest_timestamp_utc": "2007-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/March-data-2007.csv"
+    },
+    "2007-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:13.219950+00:00",
+      "latest_timestamp_utc": "2007-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2007/April-data-2007.csv"
+    },
+    "2007-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:14.063523+00:00",
+      "latest_timestamp_utc": "2007-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/May-data-2007.csv"
+    },
+    "2007-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:14.901395+00:00",
+      "latest_timestamp_utc": "2007-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2007/June-data-2007.csv"
+    },
+    "2007-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:15.757809+00:00",
+      "latest_timestamp_utc": "2007-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/July-data-2007.csv"
+    },
+    "2007-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:16.598482+00:00",
+      "latest_timestamp_utc": "2007-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/August-data-2007.csv"
+    },
+    "2007-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:17.440545+00:00",
+      "latest_timestamp_utc": "2007-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2007/September-data-2007.csv"
+    },
+    "2007-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:18.279973+00:00",
+      "latest_timestamp_utc": "2007-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/October-data-2007.csv"
+    },
+    "2007-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:19.119299+00:00",
+      "latest_timestamp_utc": "2007-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2007/November-data-2007.csv"
+    },
+    "2007-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:19.959847+00:00",
+      "latest_timestamp_utc": "2007-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2007/December-data-2007.csv"
+    },
+    "2008-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:20.799818+00:00",
+      "latest_timestamp_utc": "2008-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/January-data-2008.csv"
+    },
+    "2008-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:21.639994+00:00",
+      "latest_timestamp_utc": "2008-02-29T23:00:00Z",
+      "rows_in_response": 696,
+      "csv_path": "data-csv/2008/February-data-2008.csv"
+    },
+    "2008-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:22.478981+00:00",
+      "latest_timestamp_utc": "2008-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/March-data-2008.csv"
+    },
+    "2008-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:23.316108+00:00",
+      "latest_timestamp_utc": "2008-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2008/April-data-2008.csv"
+    },
+    "2008-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:24.156933+00:00",
+      "latest_timestamp_utc": "2008-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/May-data-2008.csv"
+    },
+    "2008-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:24.997087+00:00",
+      "latest_timestamp_utc": "2008-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2008/June-data-2008.csv"
+    },
+    "2008-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:25.848261+00:00",
+      "latest_timestamp_utc": "2008-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/July-data-2008.csv"
+    },
+    "2008-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:26.689427+00:00",
+      "latest_timestamp_utc": "2008-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/August-data-2008.csv"
+    },
+    "2008-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:27.530212+00:00",
+      "latest_timestamp_utc": "2008-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2008/September-data-2008.csv"
+    },
+    "2008-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:28.377415+00:00",
+      "latest_timestamp_utc": "2008-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/October-data-2008.csv"
+    },
+    "2008-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:29.219764+00:00",
+      "latest_timestamp_utc": "2008-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2008/November-data-2008.csv"
+    },
+    "2008-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:30.064492+00:00",
+      "latest_timestamp_utc": "2008-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2008/December-data-2008.csv"
+    },
+    "2009-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:30.912170+00:00",
+      "latest_timestamp_utc": "2009-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/January-data-2009.csv"
+    },
+    "2009-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:31.756672+00:00",
+      "latest_timestamp_utc": "2009-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2009/February-data-2009.csv"
+    },
+    "2009-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:32.597059+00:00",
+      "latest_timestamp_utc": "2009-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/March-data-2009.csv"
+    },
+    "2009-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:33.438093+00:00",
+      "latest_timestamp_utc": "2009-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2009/April-data-2009.csv"
+    },
+    "2009-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:34.277683+00:00",
+      "latest_timestamp_utc": "2009-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/May-data-2009.csv"
+    },
+    "2009-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:35.115857+00:00",
+      "latest_timestamp_utc": "2009-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2009/June-data-2009.csv"
+    },
+    "2009-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:35.980340+00:00",
+      "latest_timestamp_utc": "2009-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/July-data-2009.csv"
+    },
+    "2009-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:36.828643+00:00",
+      "latest_timestamp_utc": "2009-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/August-data-2009.csv"
+    },
+    "2009-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:37.681312+00:00",
+      "latest_timestamp_utc": "2009-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2009/September-data-2009.csv"
+    },
+    "2009-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:38.521080+00:00",
+      "latest_timestamp_utc": "2009-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/October-data-2009.csv"
+    },
+    "2009-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:39.358740+00:00",
+      "latest_timestamp_utc": "2009-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2009/November-data-2009.csv"
+    },
+    "2009-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:40.199018+00:00",
+      "latest_timestamp_utc": "2009-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2009/December-data-2009.csv"
+    },
+    "2010-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:41.039333+00:00",
+      "latest_timestamp_utc": "2010-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/January-data-2010.csv"
+    },
+    "2010-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:41.876675+00:00",
+      "latest_timestamp_utc": "2010-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2010/February-data-2010.csv"
+    },
+    "2010-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:42.712233+00:00",
+      "latest_timestamp_utc": "2010-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/March-data-2010.csv"
+    },
+    "2010-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:43.554205+00:00",
+      "latest_timestamp_utc": "2010-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2010/April-data-2010.csv"
+    },
+    "2010-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:44.392130+00:00",
+      "latest_timestamp_utc": "2010-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/May-data-2010.csv"
+    },
+    "2010-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:45.245673+00:00",
+      "latest_timestamp_utc": "2010-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2010/June-data-2010.csv"
+    },
+    "2010-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:46.090200+00:00",
+      "latest_timestamp_utc": "2010-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/July-data-2010.csv"
+    },
+    "2010-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:46.929049+00:00",
+      "latest_timestamp_utc": "2010-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/August-data-2010.csv"
+    },
+    "2010-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:47.766526+00:00",
+      "latest_timestamp_utc": "2010-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2010/September-data-2010.csv"
+    },
+    "2010-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:48.603742+00:00",
+      "latest_timestamp_utc": "2010-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/October-data-2010.csv"
+    },
+    "2010-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:49.448276+00:00",
+      "latest_timestamp_utc": "2010-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2010/November-data-2010.csv"
+    },
+    "2010-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:50.289403+00:00",
+      "latest_timestamp_utc": "2010-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2010/December-data-2010.csv"
+    },
+    "2011-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:51.134271+00:00",
+      "latest_timestamp_utc": "2011-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/January-data-2011.csv"
+    },
+    "2011-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:51.969701+00:00",
+      "latest_timestamp_utc": "2011-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2011/February-data-2011.csv"
+    },
+    "2011-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:52.814451+00:00",
+      "latest_timestamp_utc": "2011-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/March-data-2011.csv"
+    },
+    "2011-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:53.650534+00:00",
+      "latest_timestamp_utc": "2011-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2011/April-data-2011.csv"
+    },
+    "2011-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:54.488000+00:00",
+      "latest_timestamp_utc": "2011-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/May-data-2011.csv"
+    },
+    "2011-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:55.325656+00:00",
+      "latest_timestamp_utc": "2011-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2011/June-data-2011.csv"
+    },
+    "2011-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:56.160547+00:00",
+      "latest_timestamp_utc": "2011-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/July-data-2011.csv"
+    },
+    "2011-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:56.998527+00:00",
+      "latest_timestamp_utc": "2011-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/August-data-2011.csv"
+    },
+    "2011-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:57.837701+00:00",
+      "latest_timestamp_utc": "2011-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2011/September-data-2011.csv"
+    },
+    "2011-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:58.674809+00:00",
+      "latest_timestamp_utc": "2011-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/October-data-2011.csv"
+    },
+    "2011-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:58:59.514221+00:00",
+      "latest_timestamp_utc": "2011-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2011/November-data-2011.csv"
+    },
+    "2011-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:00.355836+00:00",
+      "latest_timestamp_utc": "2011-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2011/December-data-2011.csv"
+    },
+    "2012-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:01.197111+00:00",
+      "latest_timestamp_utc": "2012-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/January-data-2012.csv"
+    },
+    "2012-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:02.038415+00:00",
+      "latest_timestamp_utc": "2012-02-29T23:00:00Z",
+      "rows_in_response": 696,
+      "csv_path": "data-csv/2012/February-data-2012.csv"
+    },
+    "2012-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:02.884805+00:00",
+      "latest_timestamp_utc": "2012-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/March-data-2012.csv"
+    },
+    "2012-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:03.722323+00:00",
+      "latest_timestamp_utc": "2012-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2012/April-data-2012.csv"
+    },
+    "2012-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:04.563793+00:00",
+      "latest_timestamp_utc": "2012-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/May-data-2012.csv"
+    },
+    "2012-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:05.405655+00:00",
+      "latest_timestamp_utc": "2012-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2012/June-data-2012.csv"
+    },
+    "2012-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:06.244761+00:00",
+      "latest_timestamp_utc": "2012-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/July-data-2012.csv"
+    },
+    "2012-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:07.097946+00:00",
+      "latest_timestamp_utc": "2012-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/August-data-2012.csv"
+    },
+    "2012-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:07.938552+00:00",
+      "latest_timestamp_utc": "2012-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2012/September-data-2012.csv"
+    },
+    "2012-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:08.777616+00:00",
+      "latest_timestamp_utc": "2012-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/October-data-2012.csv"
+    },
+    "2012-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:09.617111+00:00",
+      "latest_timestamp_utc": "2012-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2012/November-data-2012.csv"
+    },
+    "2012-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:10.474275+00:00",
+      "latest_timestamp_utc": "2012-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2012/December-data-2012.csv"
+    },
+    "2013-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:11.329835+00:00",
+      "latest_timestamp_utc": "2013-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/January-data-2013.csv"
+    },
+    "2013-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:12.168853+00:00",
+      "latest_timestamp_utc": "2013-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2013/February-data-2013.csv"
+    },
+    "2013-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:13.006018+00:00",
+      "latest_timestamp_utc": "2013-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/March-data-2013.csv"
+    },
+    "2013-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:13.844287+00:00",
+      "latest_timestamp_utc": "2013-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2013/April-data-2013.csv"
+    },
+    "2013-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:14.686448+00:00",
+      "latest_timestamp_utc": "2013-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/May-data-2013.csv"
+    },
+    "2013-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:15.523920+00:00",
+      "latest_timestamp_utc": "2013-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2013/June-data-2013.csv"
+    },
+    "2013-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:16.360947+00:00",
+      "latest_timestamp_utc": "2013-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/July-data-2013.csv"
+    },
+    "2013-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:17.205662+00:00",
+      "latest_timestamp_utc": "2013-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/August-data-2013.csv"
+    },
+    "2013-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:18.049408+00:00",
+      "latest_timestamp_utc": "2013-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2013/September-data-2013.csv"
+    },
+    "2013-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:18.905972+00:00",
+      "latest_timestamp_utc": "2013-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/October-data-2013.csv"
+    },
+    "2013-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:19.747689+00:00",
+      "latest_timestamp_utc": "2013-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2013/November-data-2013.csv"
+    },
+    "2013-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:20.606173+00:00",
+      "latest_timestamp_utc": "2013-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2013/December-data-2013.csv"
+    },
+    "2014-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:21.454386+00:00",
+      "latest_timestamp_utc": "2014-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/January-data-2014.csv"
+    },
+    "2014-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:22.294911+00:00",
+      "latest_timestamp_utc": "2014-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2014/February-data-2014.csv"
+    },
+    "2014-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:23.172895+00:00",
+      "latest_timestamp_utc": "2014-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/March-data-2014.csv"
+    },
+    "2014-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:24.018283+00:00",
+      "latest_timestamp_utc": "2014-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2014/April-data-2014.csv"
+    },
+    "2014-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:24.862142+00:00",
+      "latest_timestamp_utc": "2014-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/May-data-2014.csv"
+    },
+    "2014-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:25.707065+00:00",
+      "latest_timestamp_utc": "2014-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2014/June-data-2014.csv"
+    },
+    "2014-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:26.551448+00:00",
+      "latest_timestamp_utc": "2014-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/July-data-2014.csv"
+    },
+    "2014-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:27.395785+00:00",
+      "latest_timestamp_utc": "2014-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/August-data-2014.csv"
+    },
+    "2014-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:28.239598+00:00",
+      "latest_timestamp_utc": "2014-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2014/September-data-2014.csv"
+    },
+    "2014-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:29.083874+00:00",
+      "latest_timestamp_utc": "2014-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/October-data-2014.csv"
+    },
+    "2014-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:29.925923+00:00",
+      "latest_timestamp_utc": "2014-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2014/November-data-2014.csv"
+    },
+    "2014-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:30.768483+00:00",
+      "latest_timestamp_utc": "2014-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2014/December-data-2014.csv"
+    },
+    "2015-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:31.611686+00:00",
+      "latest_timestamp_utc": "2015-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/January-data-2015.csv"
+    },
+    "2015-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:32.453800+00:00",
+      "latest_timestamp_utc": "2015-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2015/February-data-2015.csv"
+    },
+    "2015-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:33.301252+00:00",
+      "latest_timestamp_utc": "2015-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/March-data-2015.csv"
+    },
+    "2015-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:34.145694+00:00",
+      "latest_timestamp_utc": "2015-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2015/April-data-2015.csv"
+    },
+    "2015-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:34.985727+00:00",
+      "latest_timestamp_utc": "2015-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/May-data-2015.csv"
+    },
+    "2015-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:35.826761+00:00",
+      "latest_timestamp_utc": "2015-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2015/June-data-2015.csv"
+    },
+    "2015-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:36.667315+00:00",
+      "latest_timestamp_utc": "2015-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/July-data-2015.csv"
+    },
+    "2015-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:37.508730+00:00",
+      "latest_timestamp_utc": "2015-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/August-data-2015.csv"
+    },
+    "2015-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:38.346134+00:00",
+      "latest_timestamp_utc": "2015-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2015/September-data-2015.csv"
+    },
+    "2015-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:39.215493+00:00",
+      "latest_timestamp_utc": "2015-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/October-data-2015.csv"
+    },
+    "2015-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:40.060331+00:00",
+      "latest_timestamp_utc": "2015-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2015/November-data-2015.csv"
+    },
+    "2015-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:40.916900+00:00",
+      "latest_timestamp_utc": "2015-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2015/December-data-2015.csv"
+    },
+    "2016-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:41.758792+00:00",
+      "latest_timestamp_utc": "2016-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/January-data-2016.csv"
+    },
+    "2016-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:42.600995+00:00",
+      "latest_timestamp_utc": "2016-02-29T23:00:00Z",
+      "rows_in_response": 696,
+      "csv_path": "data-csv/2016/February-data-2016.csv"
+    },
+    "2016-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:43.443089+00:00",
+      "latest_timestamp_utc": "2016-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/March-data-2016.csv"
+    },
+    "2016-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:44.284786+00:00",
+      "latest_timestamp_utc": "2016-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2016/April-data-2016.csv"
+    },
+    "2016-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:45.125881+00:00",
+      "latest_timestamp_utc": "2016-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/May-data-2016.csv"
+    },
+    "2016-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:45.970325+00:00",
+      "latest_timestamp_utc": "2016-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2016/June-data-2016.csv"
+    },
+    "2016-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:46.817401+00:00",
+      "latest_timestamp_utc": "2016-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/July-data-2016.csv"
+    },
+    "2016-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:47.661410+00:00",
+      "latest_timestamp_utc": "2016-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/August-data-2016.csv"
+    },
+    "2016-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:48.501922+00:00",
+      "latest_timestamp_utc": "2016-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2016/September-data-2016.csv"
+    },
+    "2016-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:49.339871+00:00",
+      "latest_timestamp_utc": "2016-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/October-data-2016.csv"
+    },
+    "2016-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:50.182961+00:00",
+      "latest_timestamp_utc": "2016-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2016/November-data-2016.csv"
+    },
+    "2016-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:51.026956+00:00",
+      "latest_timestamp_utc": "2016-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2016/December-data-2016.csv"
+    },
+    "2017-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:51.866600+00:00",
+      "latest_timestamp_utc": "2017-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/January-data-2017.csv"
+    },
+    "2017-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:52.705516+00:00",
+      "latest_timestamp_utc": "2017-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2017/February-data-2017.csv"
+    },
+    "2017-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:53.548794+00:00",
+      "latest_timestamp_utc": "2017-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/March-data-2017.csv"
+    },
+    "2017-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:54.397416+00:00",
+      "latest_timestamp_utc": "2017-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2017/April-data-2017.csv"
+    },
+    "2017-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:55.241236+00:00",
+      "latest_timestamp_utc": "2017-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/May-data-2017.csv"
+    },
+    "2017-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:56.087244+00:00",
+      "latest_timestamp_utc": "2017-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2017/June-data-2017.csv"
+    },
+    "2017-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:56.952480+00:00",
+      "latest_timestamp_utc": "2017-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/July-data-2017.csv"
+    },
+    "2017-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:57.813910+00:00",
+      "latest_timestamp_utc": "2017-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/August-data-2017.csv"
+    },
+    "2017-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:58.654753+00:00",
+      "latest_timestamp_utc": "2017-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2017/September-data-2017.csv"
+    },
+    "2017-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T06:59:59.496938+00:00",
+      "latest_timestamp_utc": "2017-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/October-data-2017.csv"
+    },
+    "2017-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:00.362050+00:00",
+      "latest_timestamp_utc": "2017-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2017/November-data-2017.csv"
+    },
+    "2017-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:01.205406+00:00",
+      "latest_timestamp_utc": "2017-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2017/December-data-2017.csv"
+    },
+    "2018-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:02.049929+00:00",
+      "latest_timestamp_utc": "2018-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/January-data-2018.csv"
+    },
+    "2018-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:02.895005+00:00",
+      "latest_timestamp_utc": "2018-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2018/February-data-2018.csv"
+    },
+    "2018-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:03.751717+00:00",
+      "latest_timestamp_utc": "2018-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/March-data-2018.csv"
+    },
+    "2018-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:04.595346+00:00",
+      "latest_timestamp_utc": "2018-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2018/April-data-2018.csv"
+    },
+    "2018-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:05.438013+00:00",
+      "latest_timestamp_utc": "2018-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/May-data-2018.csv"
+    },
+    "2018-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:06.275996+00:00",
+      "latest_timestamp_utc": "2018-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2018/June-data-2018.csv"
+    },
+    "2018-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:07.116314+00:00",
+      "latest_timestamp_utc": "2018-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/July-data-2018.csv"
+    },
+    "2018-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:07.955362+00:00",
+      "latest_timestamp_utc": "2018-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/August-data-2018.csv"
+    },
+    "2018-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:08.798984+00:00",
+      "latest_timestamp_utc": "2018-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2018/September-data-2018.csv"
+    },
+    "2018-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:09.640407+00:00",
+      "latest_timestamp_utc": "2018-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/October-data-2018.csv"
+    },
+    "2018-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:10.481754+00:00",
+      "latest_timestamp_utc": "2018-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2018/November-data-2018.csv"
+    },
+    "2018-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:11.319432+00:00",
+      "latest_timestamp_utc": "2018-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2018/December-data-2018.csv"
+    },
+    "2019-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:12.160826+00:00",
+      "latest_timestamp_utc": "2019-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/January-data-2019.csv"
+    },
+    "2019-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:13.003360+00:00",
+      "latest_timestamp_utc": "2019-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2019/February-data-2019.csv"
+    },
+    "2019-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:13.850359+00:00",
+      "latest_timestamp_utc": "2019-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/March-data-2019.csv"
+    },
+    "2019-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:14.691478+00:00",
+      "latest_timestamp_utc": "2019-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2019/April-data-2019.csv"
+    },
+    "2019-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:15.532442+00:00",
+      "latest_timestamp_utc": "2019-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/May-data-2019.csv"
+    },
+    "2019-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:16.369933+00:00",
+      "latest_timestamp_utc": "2019-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2019/June-data-2019.csv"
+    },
+    "2019-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:17.208602+00:00",
+      "latest_timestamp_utc": "2019-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/July-data-2019.csv"
+    },
+    "2019-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:18.048921+00:00",
+      "latest_timestamp_utc": "2019-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/August-data-2019.csv"
+    },
+    "2019-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:18.892202+00:00",
+      "latest_timestamp_utc": "2019-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2019/September-data-2019.csv"
+    },
+    "2019-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:19.733316+00:00",
+      "latest_timestamp_utc": "2019-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/October-data-2019.csv"
+    },
+    "2019-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:20.579234+00:00",
+      "latest_timestamp_utc": "2019-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2019/November-data-2019.csv"
+    },
+    "2019-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:21.429421+00:00",
+      "latest_timestamp_utc": "2019-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2019/December-data-2019.csv"
+    },
+    "2020-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:22.268829+00:00",
+      "latest_timestamp_utc": "2020-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/January-data-2020.csv"
+    },
+    "2020-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:23.108598+00:00",
+      "latest_timestamp_utc": "2020-02-29T23:00:00Z",
+      "rows_in_response": 696,
+      "csv_path": "data-csv/2020/February-data-2020.csv"
+    },
+    "2020-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:23.948419+00:00",
+      "latest_timestamp_utc": "2020-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/March-data-2020.csv"
+    },
+    "2020-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:24.790894+00:00",
+      "latest_timestamp_utc": "2020-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2020/April-data-2020.csv"
+    },
+    "2020-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:25.630477+00:00",
+      "latest_timestamp_utc": "2020-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/May-data-2020.csv"
+    },
+    "2020-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:26.472768+00:00",
+      "latest_timestamp_utc": "2020-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2020/June-data-2020.csv"
+    },
+    "2020-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:27.311495+00:00",
+      "latest_timestamp_utc": "2020-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/July-data-2020.csv"
+    },
+    "2020-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:28.151077+00:00",
+      "latest_timestamp_utc": "2020-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/August-data-2020.csv"
+    },
+    "2020-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:28.992245+00:00",
+      "latest_timestamp_utc": "2020-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2020/September-data-2020.csv"
+    },
+    "2020-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:29.837356+00:00",
+      "latest_timestamp_utc": "2020-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/October-data-2020.csv"
+    },
+    "2020-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:30.678570+00:00",
+      "latest_timestamp_utc": "2020-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2020/November-data-2020.csv"
+    },
+    "2020-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:31.519016+00:00",
+      "latest_timestamp_utc": "2020-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2020/December-data-2020.csv"
+    },
+    "2021-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:32.360140+00:00",
+      "latest_timestamp_utc": "2021-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/January-data-2021.csv"
+    },
+    "2021-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:33.202738+00:00",
+      "latest_timestamp_utc": "2021-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2021/February-data-2021.csv"
+    },
+    "2021-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:34.042392+00:00",
+      "latest_timestamp_utc": "2021-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/March-data-2021.csv"
+    },
+    "2021-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:34.884568+00:00",
+      "latest_timestamp_utc": "2021-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2021/April-data-2021.csv"
+    },
+    "2021-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:35.725287+00:00",
+      "latest_timestamp_utc": "2021-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/May-data-2021.csv"
+    },
+    "2021-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:36.569918+00:00",
+      "latest_timestamp_utc": "2021-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2021/June-data-2021.csv"
+    },
+    "2021-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:37.411902+00:00",
+      "latest_timestamp_utc": "2021-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/July-data-2021.csv"
+    },
+    "2021-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:38.255958+00:00",
+      "latest_timestamp_utc": "2021-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/August-data-2021.csv"
+    },
+    "2021-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:39.096798+00:00",
+      "latest_timestamp_utc": "2021-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2021/September-data-2021.csv"
+    },
+    "2021-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:39.964158+00:00",
+      "latest_timestamp_utc": "2021-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/October-data-2021.csv"
+    },
+    "2021-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:40.805951+00:00",
+      "latest_timestamp_utc": "2021-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2021/November-data-2021.csv"
+    },
+    "2021-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:41.646231+00:00",
+      "latest_timestamp_utc": "2021-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2021/December-data-2021.csv"
+    },
+    "2022-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:42.490407+00:00",
+      "latest_timestamp_utc": "2022-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/January-data-2022.csv"
+    },
+    "2022-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:43.342342+00:00",
+      "latest_timestamp_utc": "2022-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2022/February-data-2022.csv"
+    },
+    "2022-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:44.180472+00:00",
+      "latest_timestamp_utc": "2022-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/March-data-2022.csv"
+    },
+    "2022-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:45.034385+00:00",
+      "latest_timestamp_utc": "2022-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2022/April-data-2022.csv"
+    },
+    "2022-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:45.890434+00:00",
+      "latest_timestamp_utc": "2022-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/May-data-2022.csv"
+    },
+    "2022-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:46.735284+00:00",
+      "latest_timestamp_utc": "2022-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2022/June-data-2022.csv"
+    },
+    "2022-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:47.575239+00:00",
+      "latest_timestamp_utc": "2022-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/July-data-2022.csv"
+    },
+    "2022-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:48.415158+00:00",
+      "latest_timestamp_utc": "2022-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/August-data-2022.csv"
+    },
+    "2022-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:49.257793+00:00",
+      "latest_timestamp_utc": "2022-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2022/September-data-2022.csv"
+    },
+    "2022-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:50.101348+00:00",
+      "latest_timestamp_utc": "2022-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/October-data-2022.csv"
+    },
+    "2022-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:50.940811+00:00",
+      "latest_timestamp_utc": "2022-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2022/November-data-2022.csv"
+    },
+    "2022-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:51.783994+00:00",
+      "latest_timestamp_utc": "2022-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2022/December-data-2022.csv"
+    },
+    "2023-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:52.626430+00:00",
+      "latest_timestamp_utc": "2023-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/January-data-2023.csv"
+    },
+    "2023-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:53.465693+00:00",
+      "latest_timestamp_utc": "2023-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2023/February-data-2023.csv"
+    },
+    "2023-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:54.306864+00:00",
+      "latest_timestamp_utc": "2023-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/March-data-2023.csv"
+    },
+    "2023-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:55.148949+00:00",
+      "latest_timestamp_utc": "2023-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2023/April-data-2023.csv"
+    },
+    "2023-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:55.990571+00:00",
+      "latest_timestamp_utc": "2023-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/May-data-2023.csv"
+    },
+    "2023-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:56.834014+00:00",
+      "latest_timestamp_utc": "2023-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2023/June-data-2023.csv"
+    },
+    "2023-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:57.677981+00:00",
+      "latest_timestamp_utc": "2023-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/July-data-2023.csv"
+    },
+    "2023-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:58.537878+00:00",
+      "latest_timestamp_utc": "2023-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/August-data-2023.csv"
+    },
+    "2023-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:00:59.377189+00:00",
+      "latest_timestamp_utc": "2023-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2023/September-data-2023.csv"
+    },
+    "2023-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:00.218973+00:00",
+      "latest_timestamp_utc": "2023-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/October-data-2023.csv"
+    },
+    "2023-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:01.079530+00:00",
+      "latest_timestamp_utc": "2023-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2023/November-data-2023.csv"
+    },
+    "2023-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:01.923872+00:00",
+      "latest_timestamp_utc": "2023-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2023/December-data-2023.csv"
+    },
+    "2024-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:02.765918+00:00",
+      "latest_timestamp_utc": "2024-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/January-data-2024.csv"
+    },
+    "2024-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:03.693273+00:00",
+      "latest_timestamp_utc": "2024-02-29T23:00:00Z",
+      "rows_in_response": 696,
+      "csv_path": "data-csv/2024/February-data-2024.csv"
+    },
+    "2024-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:04.658648+00:00",
+      "latest_timestamp_utc": "2024-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/March-data-2024.csv"
+    },
+    "2024-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:05.501357+00:00",
+      "latest_timestamp_utc": "2024-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2024/April-data-2024.csv"
+    },
+    "2024-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:06.342660+00:00",
+      "latest_timestamp_utc": "2024-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/May-data-2024.csv"
+    },
+    "2024-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:07.184195+00:00",
+      "latest_timestamp_utc": "2024-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2024/June-data-2024.csv"
+    },
+    "2024-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:08.040672+00:00",
+      "latest_timestamp_utc": "2024-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/July-data-2024.csv"
+    },
+    "2024-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:08.879061+00:00",
+      "latest_timestamp_utc": "2024-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/August-data-2024.csv"
+    },
+    "2024-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:09.716551+00:00",
+      "latest_timestamp_utc": "2024-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2024/September-data-2024.csv"
+    },
+    "2024-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:10.560772+00:00",
+      "latest_timestamp_utc": "2024-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/October-data-2024.csv"
+    },
+    "2024-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:11.402559+00:00",
+      "latest_timestamp_utc": "2024-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2024/November-data-2024.csv"
+    },
+    "2024-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:12.247758+00:00",
+      "latest_timestamp_utc": "2024-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2024/December-data-2024.csv"
+    },
+    "2025-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:13.099263+00:00",
+      "latest_timestamp_utc": "2025-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/January-data-2025.csv"
+    },
+    "2025-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:13.937294+00:00",
+      "latest_timestamp_utc": "2025-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2025/February-data-2025.csv"
+    },
+    "2025-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:14.810036+00:00",
+      "latest_timestamp_utc": "2025-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/March-data-2025.csv"
+    },
+    "2025-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:15.702032+00:00",
+      "latest_timestamp_utc": "2025-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2025/April-data-2025.csv"
+    },
+    "2025-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:16.623539+00:00",
+      "latest_timestamp_utc": "2025-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/May-data-2025.csv"
+    },
+    "2025-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:17.589717+00:00",
+      "latest_timestamp_utc": "2025-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2025/June-data-2025.csv"
+    },
+    "2025-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:18.468395+00:00",
+      "latest_timestamp_utc": "2025-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/July-data-2025.csv"
+    },
+    "2025-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:19.376005+00:00",
+      "latest_timestamp_utc": "2025-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/August-data-2025.csv"
+    },
+    "2025-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:20.235246+00:00",
+      "latest_timestamp_utc": "2025-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2025/September-data-2025.csv"
+    },
+    "2025-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:21.111563+00:00",
+      "latest_timestamp_utc": "2025-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/October-data-2025.csv"
+    },
+    "2025-11": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:21.999226+00:00",
+      "latest_timestamp_utc": "2025-11-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2025/November-data-2025.csv"
+    },
+    "2025-12": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:22.879827+00:00",
+      "latest_timestamp_utc": "2025-12-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2025/December-data-2025.csv"
+    },
+    "2026-01": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:23.754867+00:00",
+      "latest_timestamp_utc": "2026-01-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2026/January-data-2026.csv"
+    },
+    "2026-02": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:24.643382+00:00",
+      "latest_timestamp_utc": "2026-02-28T23:00:00Z",
+      "rows_in_response": 672,
+      "csv_path": "data-csv/2026/February-data-2026.csv"
+    },
+    "2026-03": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:25.536551+00:00",
+      "latest_timestamp_utc": "2026-03-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2026/March-data-2026.csv"
+    },
+    "2026-04": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:26.430808+00:00",
+      "latest_timestamp_utc": "2026-04-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2026/April-data-2026.csv"
+    },
+    "2026-05": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:27.331807+00:00",
+      "latest_timestamp_utc": "2026-05-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2026/May-data-2026.csv"
+    },
+    "2026-06": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:28.277045+00:00",
+      "latest_timestamp_utc": "2026-06-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2026/June-data-2026.csv"
+    },
+    "2026-07": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:29.239607+00:00",
+      "latest_timestamp_utc": "2026-07-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2026/July-data-2026.csv"
+    },
+    "2026-08": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:30.151990+00:00",
+      "latest_timestamp_utc": "2026-08-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2026/August-data-2026.csv"
+    },
+    "2026-09": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:31.033315+00:00",
+      "latest_timestamp_utc": "2026-09-30T23:00:00Z",
+      "rows_in_response": 720,
+      "csv_path": "data-csv/2026/September-data-2026.csv"
+    },
+    "2026-10": {
+      "complete": true,
+      "last_success_utc": "2026-11-07T07:01:31.925039+00:00",
+      "latest_timestamp_utc": "2026-10-31T23:00:00Z",
+      "rows_in_response": 744,
+      "csv_path": "data-csv/2026/October-data-2026.csv"
+    }
+  }
+}

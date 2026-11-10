@@ -1,0 +1,5 @@
+# Chỉ là dependency tối thiểu cho runnable scaffold. Khi triển khai nghiệp vụ:
+# dùng lockfile riêng (uv.lock hoặc requirements lock) và bổ sung theo từng service.
+fastapi>=0.115,<1
+uvicorn>=0.34,<1
+pydantic-settings>=2.8,<3

@@ -1,0 +1,61 @@
+{
+  "_meta": {
+    "kind": "illustrative-contract-examples-only",
+    "disclaimer": "FAKE SAMPLE DATA. Not NOAA observations, not generated model evaluations, not live API output."
+  },
+  "observation_latest": {
+    "station_id": "51201",
+    "observed_at": "2026-11-06T10:26:00Z",
+    "wave_height_m": 2.4,
+    "dominant_period_s": 11.1,
+    "average_period_s": 8.4,
+    "mean_wave_direction_deg": 330,
+    "sea_surface_temp_c": null,
+    "quality_status": "partial",
+    "source_kind": "realtime",
+    "revision_no": 1
+  },
+  "forecast_latest": {
+    "prediction_id": 101,
+    "station_id": "51201",
+    "target_metric": "WVHT",
+    "target_aggregation": "daily_median",
+    "target_date_hst": "2026-11-08",
+    "feature_cutoff_date_hst": "2026-11-07",
+    "issued_at": "2026-11-08T12:00:00Z",
+    "predicted_value_m": 2.1,
+    "actual_value_m": null,
+    "absolute_error_m": null,
+    "model": {"model_id": 3, "name": "illustrative_regressor", "version": "demo-not-real"},
+    "data_quality_status": "ready"
+  },
+  "job_running": {
+    "job_id": "demo-job-123",
+    "job_type": "analysis",
+    "status": "running",
+    "started_at": "2026-11-07T06:00:00Z",
+    "finished_at": null,
+    "progress_completed": 1,
+    "progress_total": 4,
+    "inserted_rows": null,
+    "revised_rows": null,
+    "deleted_rows": null,
+    "error": null,
+    "affected_patterns": ["time_series", "trend_seasonal"]
+  },
+  "metrics_day": {
+    "station_id": "51201",
+    "period_type": "day",
+    "period_start_hst": "2026-11-06",
+    "metric_code": "WVHT",
+    "mean_value": 1.9,
+    "median_value": 1.8,
+    "min_value": 1.1,
+    "max_value": 2.7,
+    "p95_value": 2.6,
+    "sample_count": 45,
+    "valid_sample_count": 42,
+    "computed_at": "2026-11-07T08:00:00Z",
+    "calculation_version": "demo-only"
+  }
+}

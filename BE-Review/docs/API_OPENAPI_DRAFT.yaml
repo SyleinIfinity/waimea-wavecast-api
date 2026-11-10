@@ -1,0 +1,786 @@
+# DRAFT ONLY: not yet implemented, schema placeholders for list items.
+openapi: 3.1.0
+info:
+  title: Waimea WaveCast Public API — PROPOSED CONTRACT ONLY
+  version: 1.0.0-draft
+  description: Endpoints are not yet implemented in scaffold. No real NOAA/ML results
+    included.
+servers:
+- url: https://apiwaimea.liems.io.vn/api/v1
+tags:
+- name: Stations
+- name: Observations
+- name: Analytics
+- name: Machine Learning
+- name: Monitoring
+paths:
+  /stations/{station_id}:
+    get:
+      tags:
+      - Stations
+      summary: Station metadata
+      operationId: get_stations_station_id
+      parameters:
+      - name: station_id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Station'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /observations:
+    get:
+      tags:
+      - Observations
+      summary: Paginated NOAA observations
+      operationId: get_observations
+      parameters:
+      - in: query
+        name: station_id
+        required: false
+        schema:
+          type: string
+          default: '51201'
+      - in: query
+        name: start
+        required: false
+        schema:
+          type: string
+        description: UTC RFC3339 inclusive
+      - in: query
+        name: end
+        required: false
+        schema:
+          type: string
+        description: UTC RFC3339 exclusive
+      - in: query
+        name: limit
+        required: false
+        schema:
+          type: integer
+          default: 100
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /observations/latest:
+    get:
+      tags:
+      - Observations
+      summary: Latest available NOAA observation
+      operationId: get_observations_latest
+      parameters:
+      - in: query
+        name: station_id
+        required: false
+        schema:
+          type: string
+          default: '51201'
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Observation'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /metrics/summary:
+    get:
+      tags:
+      - Analytics
+      summary: Time series day/week/month
+      operationId: get_metrics_summary
+      parameters:
+      - in: query
+        name: metric
+        required: true
+        schema:
+          type: string
+          enum:
+          - WVHT
+          - DPD
+          - APD
+          - MWD
+          - WTMP
+      - in: query
+        name: group_by
+        required: false
+        schema:
+          type: string
+          default: day
+          enum:
+          - day
+          - week
+          - month
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /analytics/trend-seasonal:
+    get:
+      tags:
+      - Analytics
+      summary: Trend seasonal residual
+      operationId: get_analytics_trend_seasonal
+      parameters:
+      - in: query
+        name: metric
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: period
+        required: false
+        schema:
+          type: string
+          enum:
+          - week
+          - month
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /analytics/correlations:
+    get:
+      tags:
+      - Analytics
+      summary: Paired valid sample correlations
+      operationId: get_analytics_correlations
+      parameters:
+      - in: query
+        name: method
+        required: false
+        schema:
+          type: string
+          enum:
+          - pearson
+          - spearman
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /analytics/histogram:
+    get:
+      tags:
+      - Analytics
+      summary: Histogram data for metric
+      operationId: get_analytics_histogram
+      parameters:
+      - in: query
+        name: metric
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: bins
+        required: false
+        schema:
+          type: integer
+          default: 20
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /analytics/scatter:
+    get:
+      tags:
+      - Analytics
+      summary: Paired sample x vs y
+      operationId: get_analytics_scatter
+      parameters:
+      - in: query
+        name: x
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: y
+        required: true
+        schema:
+          type: string
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /clusters:
+    get:
+      tags:
+      - Machine Learning
+      summary: Daily cluster assignments
+      operationId: get_clusters
+      parameters:
+      - in: query
+        name: model_version
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /predictions/latest:
+    get:
+      tags:
+      - Machine Learning
+      summary: Latest next-day regression prediction
+      operationId: get_predictions_latest
+      parameters:
+      - in: query
+        name: target_metric
+        required: false
+        schema:
+          type: string
+          default: WVHT
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Prediction'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /predictions/history:
+    get:
+      tags:
+      - Machine Learning
+      summary: Issued regression predictions
+      operationId: get_predictions_history
+      parameters:
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /classifications/latest:
+    get:
+      tags:
+      - Machine Learning
+      summary: Latest next-day classification
+      operationId: get_classifications_latest
+      parameters: []
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /classifications/schemes:
+    get:
+      tags:
+      - Machine Learning
+      summary: Versioned classification thresholds
+      operationId: get_classifications_schemes
+      parameters: []
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /models:
+    get:
+      tags:
+      - Machine Learning
+      summary: Registry entries (no model object URLs)
+      operationId: get_models
+      parameters:
+      - in: query
+        name: task_type
+        required: false
+        schema:
+          type: string
+          enum:
+          - regression
+          - classification
+          - clustering
+      - in: query
+        name: status
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /models/{model_id}/evaluations:
+    get:
+      tags:
+      - Machine Learning
+      summary: Saved validation/test metrics
+      operationId: get_models_model_id_evaluations
+      parameters:
+      - name: model_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - in: query
+        name: stage
+        required: false
+        schema:
+          type: string
+          enum:
+          - train
+          - validation
+          - test
+          - walk_forward
+          - backtest
+          - live
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /data-quality/overview:
+    get:
+      tags:
+      - Monitoring
+      summary: NOAA gaps QC and daily completeness
+      operationId: get_data_quality_overview
+      parameters:
+      - in: query
+        name: start_hst
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: end_hst
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+  /jobs/{processing_run_id}:
+    get:
+      tags:
+      - Monitoring
+      summary: Internal or admin job status
+      operationId: get_jobs_processing_run_id
+      parameters:
+      - name: processing_run_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: Proposed response schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Service unavailable
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            request_id:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+    Station:
+      type: object
+      required:
+      - station_id
+      - station_name
+      - local_timezone
+      properties:
+        station_id:
+          type: string
+          example: '51201'
+        station_name:
+          type: string
+        local_timezone:
+          type: string
+          example: Pacific/Honolulu
+        latitude:
+          type:
+          - number
+          - 'null'
+        longitude:
+          type:
+          - number
+          - 'null'
+    Observation:
+      type: object
+      required:
+      - station_id
+      - observed_at
+      - quality_status
+      properties:
+        station_id:
+          type: string
+        observed_at:
+          type: string
+          format: date-time
+        wave_height_m:
+          type:
+          - number
+          - 'null'
+        dominant_period_s:
+          type:
+          - number
+          - 'null'
+        average_period_s:
+          type:
+          - number
+          - 'null'
+        mean_wave_direction_deg:
+          type:
+          - number
+          - 'null'
+        sea_surface_temp_c:
+          type:
+          - number
+          - 'null'
+        quality_status:
+          type: string
+        source_kind:
+          type: string
+    Prediction:
+      type: object
+      required:
+      - station_id
+      - target_metric
+      - target_date_hst
+      - feature_cutoff_date_hst
+      - predicted_value_m
+      - issued_at
+      - model
+      properties:
+        station_id:
+          type: string
+        target_metric:
+          type: string
+          enum:
+          - WVHT
+        target_date_hst:
+          type: string
+          format: date
+        feature_cutoff_date_hst:
+          type: string
+          format: date
+        predicted_value_m:
+          type: number
+        issued_at:
+          type: string
+          format: date-time
+        actual_value_m:
+          type:
+          - number
+          - 'null'
+        model:
+          type: object
+          properties:
+            model_id:
+              type: integer
+            version:
+              type: string
+        quality_status:
+          type: string
+    ListResponse:
+      type: object
+      required:
+      - items
+      - has_more
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        next_cursor:
+          type:
+          - string
+          - 'null'
+        has_more:
+          type: boolean
+    Job:
+      type: object
+      required:
+      - job_id
+      - status
+      properties:
+        job_id:
+          type: integer
+        status:
+          type: string
+          enum:
+          - running
+          - success
+          - failed
+          - partial
+          - skipped
+        started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        finished_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        error_message:
+          type:
+          - string
+          - 'null'
