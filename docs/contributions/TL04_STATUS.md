@@ -1,6 +1,6 @@
 ﻿# TL04_STATUS.md — Báo cáo trạng thái bàn giao (Backend 1: Ingestion)
 
-**Người phụ trách:** Thành viên 4 — Backend 1  
+**Người phụ trách:** Komeme  
 **Nhánh:** `feature/tl04-be-ingestion`  
 **Cập nhật lần cuối:** 2026-11-10
 

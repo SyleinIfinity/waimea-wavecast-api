@@ -1,6 +1,6 @@
 ﻿# TL04_FUNCTIONS.md — Danh sách chức năng đã hoàn thiện (Backend 1)
 
-**Người phụ trách:** Thành viên 4 — Backend 1  
+**Người phụ trách:** Komeme  
 **Nhánh:** `feature/tl04-be-ingestion`
 
 > Chỉ ghi "hoàn thiện" khi đã chạy test tương ứng thành công.
