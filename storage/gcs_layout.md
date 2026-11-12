@@ -1,10 +1,22 @@
 # Google Cloud Storage object layout
 
-- `gs://waimea-raw-<PROJECT_ID>/noaa/51201/year=YYYY/month=MM/day=DD/<batch>.txt`
-- `gs://waimea-raw-<PROJECT_ID>/cdip/106/year=YYYY/month=MM/day=DD/<batch>.json`
-- `gs://waimea-raw-<PROJECT_ID>/open-meteo/year=YYYY/month=MM/day=DD/<batch>.json`
-- `gs://waimea-models-<PROJECT_ID>/prediction/<model_version>/model.joblib`
-- `gs://waimea-models-<PROJECT_ID>/classification/<model_version>/model.joblib`
-- `gs://waimea-backups-<PROJECT_ID>/postgres/<date>/<export>.sql.gz`
+All objects live in the private `gs://waimea-noaa/` bucket in `asia-southeast1`.
+`GCS_BUCKET`, `GCS_RAW_BUCKET`, `GCS_MODELS_BUCKET`, and `GCS_BACKUP_BUCKET`
+all name this same bucket; the latter three preserve existing module settings.
 
-GCS buckets should be private, use IAM with least privilege, and have lifecycle/versioning policies. Raw payloads are keyed by content hash to avoid storing every identical response again.
+| Data | Object prefix | Current use |
+| --- | --- | --- |
+| NOAA raw datasets | `noaa/raw/` | Ingestion path builders; production ingestion still uses a fake adapter |
+| Processed datasets | `datasets/processed/` | Reserved |
+| Training datasets | `datasets/training/` | Live training CLI writes Parquet snapshots |
+| ML models | `models/` | Live training CLI and inference workers |
+| Training logs and reports | `reports/training/` | Reserved |
+| Model evaluations | `evaluations/` | Reserved; metrics currently go to Database API |
+| Prediction results | `predictions/` | Reserved; predictions currently go to Database API |
+| PostgreSQL exports | `backups/postgres/` | Reserved for separately managed exports |
+| Connectivity checks | `test/` | Temporary objects, deleted after each check |
+
+Raw payloads and model artifacts use immutable object paths and generation checks.
+Keep uniform bucket-level access and public access prevention enabled, and grant
+only the VM service account the object permissions its jobs require. The application
+uses Compute Engine Application Default Credentials (ADC), not a JSON key file.

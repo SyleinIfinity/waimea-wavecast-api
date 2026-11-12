@@ -1,19 +1,8 @@
 # Production overlay for the Compute Engine VM.
 # Requires a valid .env.production file (see .env.production.example).
 services:
-  cloud-sql-proxy:
-    image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2
-    command:
-      - '--private-ip'
-      - '--address=0.0.0.0'
-      - '--port=5432'
-      - '${CLOUD_SQL_INSTANCE_CONNECTION_NAME:?Set Cloud SQL instance connection name}'
-    restart: unless-stopped
-    networks: [waimea-internal]
-
   database-api:
     env_file: [ .env.production ]
-    depends_on: [cloud-sql-proxy]
   ingestion:
     env_file: [ .env.production ]
   preprocessing:

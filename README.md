@@ -1,11 +1,11 @@
 # Waimea WaveCast — Backend
 
-**FastAPI microservices on Compute Engine**, managed **Cloud SQL for PostgreSQL**, **Google Cloud Storage** for raw source payloads and ML artifacts. Public API: `https://apiwaimea.liems.io.vn`.
+**FastAPI microservices on Compute Engine**, managed **Cloud SQL for PostgreSQL**, and one private **Google Cloud Storage** bucket (`gs://waimea-noaa/`) for raw source payloads and ML artifacts. Public API: `https://apiwaimea.liems.io.vn`.
 
 ## Local dev
 ```bash
 cp .env.example .env
-# edit credentials and URL in .env
+# set local credentials in .env (the example uses the devdb container)
 docker compose --profile devdb up -d --build
 # initial SQL migration must be applied to the local DB before querying observations
 ```
@@ -17,7 +17,7 @@ cp .env.production.example .env.production
 bash deploy/scripts/deploy.sh
 ```
 
-**Infrastructure prerequisites:** Cloud SQL Private IP connectivity from VM, service account with Cloud SQL Client + limited GCS IAM, private storage buckets, Nginx reverse proxy with TLS, firewall TCP 80/443 and limited SSH access. `cloud-sql-proxy` uses private IP.
+**Infrastructure prerequisites:** VM DNS and network access to `dbwaimea.liems.io.vn:5432`, PostgreSQL credentials with TLS (`DB_SSLMODE=require`), GCS access through the VM service account, private `waimea-noaa` bucket, Nginx reverse proxy with TLS, firewall TCP 80/443 and limited SSH access. Direct PostgreSQL access does not require the Cloud SQL Auth Proxy or its Cloud SQL Client IAM role.
 
 **Status:** TL01 Database API is implemented under `services/database_api/` with PostgreSQL v2 migrations, public/internal/admin routes and tests. Worker integration remains separate; consult `docs/contributions/TL01_STATUS.md`. `docs/implementation-roadmap.md` describes implementation order. CI/CD deployment examples are inactive until secured.
 
@@ -25,7 +25,7 @@ bash deploy/scripts/deploy.sh
 - `NOAA 51201` and `CDIP 106` represent the same buoy.
 - Open-Meteo is model output, not observed buoy data.
 - Use UTC internally and Hawaii local dates for daily features.
-- Never expose DB port 5432 publicly or commit `.env.production`.
+- Restrict DB port 5432 to trusted clients; never commit `.env.production`.
 
 ## TL01 Database API
 

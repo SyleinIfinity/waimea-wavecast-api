@@ -12,6 +12,7 @@ import joblib
 import sklearn
 
 from packages.gcs.client import GCSClientProtocol
+from packages.gcs.paths import MODEL_PREFIX
 
 
 def _uri(uri: str) -> tuple[str, str]:
@@ -32,7 +33,7 @@ class ModelStore:
         joblib.dump(model, buffer)
         data = buffer.getvalue()
         digest = hashlib.sha256(data).hexdigest()
-        prefix = f"models/{task}/{version}"
+        prefix = f"{MODEL_PREFIX}/{task}/{version}"
         model_info = self.client.upload_if_absent(self.bucket, prefix + "/model.joblib", data)
         if model_info.content_sha256 != digest:
             raise ValueError("artifact hash mismatch")
@@ -49,7 +50,7 @@ class ModelStore:
 
     def load(self, metadata: dict) -> tuple[Any, dict]:
         bucket, path = _uri(metadata["artifact_gcs_uri"])
-        if bucket != self.bucket or not path.startswith("models/"):
+        if bucket != self.bucket or not path.startswith(f"{MODEL_PREFIX}/"):
             raise ValueError("untrusted model location")
         generation = metadata.get("artifact_generation")
         digest = metadata.get("artifact_sha256")

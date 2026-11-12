@@ -16,7 +16,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-waimea_wavecast}
       POSTGRES_USER: ${POSTGRES_USER:-waimea}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-only-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-}
     volumes:
       - postgres_dev:/var/lib/postgresql/data
     ports:

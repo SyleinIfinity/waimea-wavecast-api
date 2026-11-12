@@ -25,6 +25,8 @@ class FakeResult:
 
 class FakeConnection:
     def execute(self, query, params=None):
+        if isinstance(query, str) and query.startswith("SELECT raw_id"):
+            return FakeResult({"raw_id": 1})
         return FakeResult()
 
 
@@ -60,7 +62,7 @@ def test_internal_requires_token_and_idempotency(client):
     assert client.post("/internal/v1/raw-observations/bulk", json=payload, headers={"X-Internal-Token": "internal-test"}).status_code == 422
     accepted = client.post("/internal/v1/raw-observations/bulk", json=payload, headers={"X-Internal-Token": "internal-test", "Idempotency-Key": "raw-test"})
     assert accepted.status_code == 200
-    assert accepted.json() == {"inserted": 0, "duplicate": 1}
+    assert accepted.json() == {"inserted": 0, "duplicate": 1, "raw_ids": {"a" * 64: 1}}
 
 
 def test_production_delete_is_blocked(client):

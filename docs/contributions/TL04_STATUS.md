@@ -30,7 +30,7 @@
 | `tests/integration/test_ingest_pipeline.py` | ✅ PASS (fake GCS + fake DB) |
 | `tests/integration/test_rebuild_days.py` | ✅ PASS (fake DB) |
 | Kết nối Cloud SQL thực | ⚠️ NOT_STARTED (cần TL01 deploy + IAM) |
-| Kết nối GCS thực | ⚠️ NOT_STARTED (cần `GCS_BUCKET` env + SA) |
+| Kết nối GCS thực | ✅ ADC và thao tác object đã kiểm chứng trong container; Ingestion vẫn dùng `FakeGCSClient` |
 | NOAA network thực (không mock) | ⚠️ NOT_STARTED (sandbox/CI chưa cấu hình) |
 
 ---
@@ -69,8 +69,8 @@
 
 1. **TL01** cần cung cấp HTTP implementation của `DatabaseGateway` (hiện dùng `FakeDatabaseGateway`)
 2. **TL01** cần cung cấp `feed_id` thực từ `bronze.source_feeds` (hiện để `feed_id=0` trong `SourceFileDTO`)
-3. **GCS bucket name** cần xác nhận từ `GCS_BUCKET` env var trước khi switch sang `RealGCSClient`
-4. **Cloud SQL IAM** (Cloud SQL Client role) cần cấp cho Service Account của VM trước khi kết nối
+3. **Ingestion GCS adapter** cần chuyển từ `FakeGCSClient` sang `RealGCSClient` sau khi HTTP DatabaseGateway hoàn tất; `GCS_BUCKET=waimea-noaa` và ADC đã được kiểm chứng trong container.
+4. VM cần phân giải DNS và truy cập được `dbwaimea.liems.io.vn:5432`; Database API dùng `DB_USER`, `DB_PASSWORD` và TLS (`DB_SSLMODE=require`) để kết nối trực tiếp.
 5. Không tự sửa `services/database_api/` hay `database/migrations/` — đó là phạm vi TL01
 
 ---

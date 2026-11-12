@@ -1,0 +1,3 @@
+services:
+  database-api:
+    env_file: [ .env.production ]

@@ -15,7 +15,6 @@ from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from typing import Literal
 
-from packages.db.fake import FakeDatabaseGateway
 from packages.db.gateway import (
     DatabaseGateway,
     RawObservationDTO,
@@ -23,8 +22,7 @@ from packages.db.gateway import (
     SourceFileDTO,
 )
 from packages.gcs.client import GCSClientProtocol
-from packages.gcs.fake import FakeGCSClient
-from packages.gcs.paths import annual_object_path, monthly_object_path, realtime_object_path, full_gcs_uri
+from packages.gcs.paths import annual_object_path, monthly_object_path, realtime_object_path
 from packages.noaa.client import NOAAClient
 from packages.noaa.hash import file_sha256, measurement_sha256, row_sha256
 from packages.noaa.normalize import normalize_row
@@ -45,11 +43,14 @@ class IngestResult:
     feed_key: FeedKey
     period_label: str         # e.g. "2023", "2023-05", "realtime"
     file_id: int | None = None
+    gcs_uri: str | None = None
+    gcs_generation: int | None = None
     raw_inserted: int = 0
     raw_duplicate: int = 0
     silver_inserted: int = 0
     silver_revised: int = 0
     silver_duplicate: int = 0
+    silver_skipped: int = 0
     parse_errors: int = 0
     success: bool = False
     error: str | None = None
@@ -125,6 +126,8 @@ def run_ingest(
     gcs_client: GCSClientProtocol | None = None,
     db_gateway: DatabaseGateway | None = None,
     bucket: str = "waimea-noaa",
+    replay_object_path: str | None = None,
+    replay_generation: int | None = None,
 ) -> IngestResult:
     """
     Execute the full ingestion SAGA for one (feed_key, year[, month]) period.
@@ -134,8 +137,8 @@ def run_ingest(
         year:        Calendar year (integer).
         month:       Month 1-12 (required for monthly feed).
         noaa_client: HTTP client; defaults to NOAAClient().
-        gcs_client:  GCS client; defaults to FakeGCSClient() for safety in tests.
-        db_gateway:  Database gateway; defaults to FakeDatabaseGateway().
+        gcs_client:  Explicit GCS adapter.
+        db_gateway:  Explicit Database API adapter.
         bucket:      GCS bucket name.
 
     Returns:
@@ -143,10 +146,8 @@ def run_ingest(
     """
     if noaa_client is None:
         noaa_client = NOAAClient()
-    if gcs_client is None:
-        gcs_client = FakeGCSClient()
-    if db_gateway is None:
-        db_gateway = FakeDatabaseGateway()
+    if gcs_client is None or db_gateway is None:
+        raise ValueError("GCS and database gateways must be supplied explicitly")
 
     period_label = str(year) if month is None else f"{year}-{month:02d}"
     result = IngestResult(feed_key=feed_key, period_label=period_label)
@@ -154,37 +155,71 @@ def run_ingest(
     url = _make_url(feed_key, year, month)
     logger.info("Ingesting %s / %s from %s", feed_key, period_label, url)
 
-    # --- Step 1: Download ---
-    try:
-        from packages.common.errors import SourceUnavailableError
-        raw_bytes = noaa_client.download(url)
-    except Exception as exc:  # includes SourceUnavailableError
-        logger.warning("Download failed for %s %s: %s", feed_key, period_label, exc)
-        result.error = str(exc)
+    # --- Step 1: Download from NOAA, or replay the original immutable GCS object. ---
+    obj_info = None
+    if replay_object_path is not None:
+        allowed_replay_path = replay_object_path.startswith("noaa/raw/") or (
+            replay_object_path.startswith("test/tl06/") and "/noaa/raw/" in replay_object_path
+        )
+        if not allowed_replay_path or replay_generation is None:
+            raise ValueError("replay requires a NOAA raw object path and pinned generation")
+        try:
+            obj_info = gcs_client.object_info(bucket, replay_object_path)
+            if obj_info is None or obj_info.generation != replay_generation:
+                raise ValueError("replay object generation not found")
+            raw_bytes = gcs_client.download(bucket, replay_object_path, replay_generation)
+        except Exception as exc:
+            result.error = f"GCS replay download failed: {type(exc).__name__}"
+            return result
+    else:
+        try:
+            raw_bytes = noaa_client.download(url)
+        except Exception as exc:
+            logger.warning("Download failed for %s %s: %s", feed_key, period_label, exc)
+            result.error = str(exc)
+            return result
+
+    if not raw_bytes:
+        result.error = "NOAA returned an empty payload"
         return result
 
-    # --- Step 2: Compute file hash ---
+    # --- Step 2: Parse before writing; malformed/empty datasets cannot look successful. ---
+    try:
+        parse_result = parse_stdmet(raw_bytes, filename=url)
+    except Exception as exc:
+        logger.warning("NOAA parse failed for %s %s: %s", feed_key, period_label, type(exc).__name__)
+        result.error = f"NOAA payload invalid: {type(exc).__name__}"
+        return result
+    result.parse_errors = parse_result.parse_error_count
+    if not parse_result.rows:
+        result.error = "NOAA payload contained no valid observations"
+        return result
+
     fhash = file_sha256(raw_bytes)
+    if obj_info is not None and obj_info.content_sha256 and obj_info.content_sha256 != fhash:
+        result.error = "GCS replay object checksum mismatch"
+        return result
     compression = "gz" if raw_bytes[:2] == b"\x1f\x8b" else "none"
 
     # --- Step 3: Upload to GCS (if_generation_match=0) ---
-    obj_path = _make_object_path(feed_key, year, month, fhash)
-    try:
-        obj_info = gcs_client.upload_if_absent(
-            bucket=bucket,
-            object_path=obj_path,
-            data=raw_bytes,
-            content_type="application/x-gzip" if compression == "gz" else "text/plain",
-            metadata={"content_sha256": fhash, "station_id": STATION_ID},
-        )
-    except Exception as exc:
-        logger.error("GCS upload failed for %s %s: %s", feed_key, period_label, exc)
-        result.error = f"GCS upload failed: {exc}"
-        return result
+    obj_path = replay_object_path or _make_object_path(feed_key, year, month, fhash)
+    if obj_info is None:
+        try:
+            obj_info = gcs_client.upload_if_absent(
+                bucket=bucket,
+                object_path=obj_path,
+                data=raw_bytes,
+                content_type="application/x-gzip" if compression == "gz" else "text/plain",
+                metadata={"content_sha256": fhash, "station_id": STATION_ID, "feed_key": feed_key, "source_url": url},
+            )
+        except Exception as exc:
+            logger.error("GCS upload failed for %s %s: %s", feed_key, period_label, exc)
+            result.error = f"GCS upload failed: {exc}"
+            return result
+    result.gcs_uri = obj_info.gcs_uri
+    result.gcs_generation = obj_info.generation
 
     # --- Step 4: Register source file in DB ---
-    parse_result = parse_stdmet(raw_bytes, filename=obj_path)
-    result.parse_errors = parse_result.parse_error_count
     if parse_result.parse_error_count > 0:
         logger.warning(
             "%d parse errors in %s %s: %s",
@@ -199,12 +234,12 @@ def run_ingest(
 
     source_file_dto = SourceFileDTO(
         station_id=STATION_ID,
-        feed_id=0,          # TL01 will assign real feed_id
+        feed_id=None,       # Database API resolves the feed ID from feed_key.
         feed_key=feed_key,
         original_filename=obj_path.split("/")[-1],
         source_url=url,
         storage_format="ndbc_stdmet_txt",
-        gcs_uri=full_gcs_uri(bucket, obj_path),
+        gcs_uri=obj_info.gcs_uri,
         gcs_generation=obj_info.generation,
         content_sha256=fhash,
         size_bytes=len(raw_bytes),
@@ -213,6 +248,13 @@ def run_ingest(
         source_period_end=period_end,
         parse_status="parsed" if parse_result.parse_error_count == 0 else "partial",
         columns_in_source=parse_result.columns_in_source,
+        gcs_bucket=bucket,
+        gcs_object_name=obj_info.object_path,
+        gcs_upload_status="verified",
+        parser_version=PARSER_VERSION,
+        source_row_count=len(parse_result.rows),
+        parse_error_count=parse_result.parse_error_count,
+        parsed_at=datetime.now(timezone.utc),
     )
 
     try:
@@ -246,6 +288,9 @@ def run_ingest(
             raw_counts = db_gateway.upsert_raw_batch(raw_dtos)
             result.raw_inserted += raw_counts["inserted"]
             result.raw_duplicate += raw_counts["duplicate"]
+            raw_ids = raw_counts["raw_ids"]
+            if any(r.row_sha256 not in raw_ids for r in raw_dtos):
+                raise ValueError("raw upsert omitted lineage IDs")
         except Exception as exc:
             logger.error("DB upsert_raw_batch failed at offset %d: %s", i, exc)
             result.error = f"Raw upsert failed: {exc}"
@@ -258,7 +303,7 @@ def run_ingest(
                 station_id=STATION_ID,
                 feed_key=feed_key,
                 file_id=file_id,
-                raw_id=None,          # raw_id available after raw upsert in real impl
+                raw_id=raw_ids[row_sha256(r.source_line)],
                 source_dataset=f"noaa_ndbc_{feed_key}_{period_label}",
             )
             for r in batch
@@ -266,8 +311,9 @@ def run_ingest(
         try:
             silver_counts = db_gateway.upsert_silver_batch(silver_dtos)
             result.silver_inserted += silver_counts["inserted"]
-            result.silver_revised += silver_counts["revised"]
+            result.silver_revised += silver_counts.get("revised", silver_counts.get("updated", 0))
             result.silver_duplicate += silver_counts["duplicate"]
+            result.silver_skipped += silver_counts.get("skipped", 0)
         except Exception as exc:
             logger.error("DB upsert_silver_batch failed at offset %d: %s", i, exc)
             result.error = f"Silver upsert failed: {exc}"
@@ -282,3 +328,13 @@ def run_ingest(
         result.parse_errors,
     )
     return result
+
+
+def replay_stored_object(feed_key: FeedKey, year: int, *, object_path: str,
+                         generation: int, month: int | None = None,
+                         gcs_client: GCSClientProtocol, db_gateway: DatabaseGateway,
+                         bucket: str = "waimea-noaa") -> IngestResult:
+    """Resume an orphaned GCS object without re-fetching a changed NOAA feed."""
+    return run_ingest(feed_key, year, month, gcs_client=gcs_client, db_gateway=db_gateway,
+                      bucket=bucket, replay_object_path=object_path,
+                      replay_generation=generation)

@@ -31,6 +31,12 @@ class SourceFileIn(APIModel):
     gcs_bucket: str | None = None
     gcs_object_name: str | None = None
     source_etag: str | None = None
+    parser_version: str | None = None
+    source_row_count: int | None = Field(default=None, ge=0)
+    parse_error_count: int = Field(default=0, ge=0)
+    parse_status: Literal["pending", "parsed", "partial", "failed"] = "pending"
+    parsed_at: datetime | None = None
+    columns_in_source: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def storage_valid(self):

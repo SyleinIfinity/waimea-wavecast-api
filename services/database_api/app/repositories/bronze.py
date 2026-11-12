@@ -28,6 +28,7 @@ def register_source_file(conn, item: SourceFileIn) -> dict:
 
 def upsert_raw_batch(conn, batch: RawBatch) -> dict:
     inserted = duplicate = 0
+    raw_ids = {}
     for row in batch.rows:
         values = row.model_dump(exclude_none=True)
         values["file_id"] = batch.file_id
@@ -38,7 +39,13 @@ def upsert_raw_batch(conn, batch: RawBatch) -> dict:
         ).fetchone()
         inserted += result is not None
         duplicate += result is None
-    return {"inserted": inserted, "duplicate": duplicate}
+        if result is None:
+            result = conn.execute(
+                "SELECT raw_id FROM bronze.raw_observations WHERE file_id=%s AND row_sha256=%s",
+                (batch.file_id, row.row_sha256),
+            ).fetchone()
+        raw_ids[row.row_sha256] = result["raw_id"]
+    return {"inserted": inserted, "duplicate": duplicate, "raw_ids": raw_ids}
 
 
 def create_ingestion_run(conn, item: IngestionRunIn, idempotency_key: str):

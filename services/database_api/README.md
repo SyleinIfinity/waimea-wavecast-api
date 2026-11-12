@@ -12,6 +12,9 @@ development, copy the root `.env.example` to the root `.env` and fill in the DB 
 `services/database_api/app/config.py` loads that file automatically. Deployment can pass the same
 variables through a protected host secret store. Keep
 `DB_PASSWORD`, `INTERNAL_API_TOKEN`, and `ADMIN_API_TOKEN` out of Git.
+For production, set `DB_HOST=dbwaimea.liems.io.vn`, `DB_PORT=5432`, the
+database name and user, and `DB_SSLMODE=require`. The service reads these
+settings directly; workers continue to use `DATABASE_API_URL` for internal HTTP.
 
 ```sh
 python -m pip install -e ".[dev]"
@@ -54,3 +57,6 @@ production. `/health/live` checks only this process, while `/health/ready`
 checks PostgreSQL with `SELECT 1`. Configure Nginx to expose only `/api/v1`
 and health routes; keep `/internal/v1` on the private service network.
 `contracts/examples.json` contains mock and empty responses for TL02–TL05.
+The container receives the same `GCS_*` bucket settings as the workers, but the
+Database API does not itself read or write GCS objects. GCS connectivity is
+verified from inside this container with the real `RealGCSClient` and VM ADC.

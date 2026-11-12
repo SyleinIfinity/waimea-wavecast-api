@@ -21,6 +21,14 @@ from datetime import date
 
 _SAFE_PATTERN = re.compile(r'^[a-zA-Z0-9_.\-]+$')
 
+NOAA_RAW_PREFIX = "noaa/raw"
+PROCESSED_DATASET_PREFIX = "datasets/processed"
+TRAINING_DATASET_PREFIX = "datasets/training"
+MODEL_PREFIX = "models"
+TRAINING_REPORT_PREFIX = "reports/training"
+EVALUATION_PREFIX = "evaluations"
+PREDICTION_PREFIX = "predictions"
+
 
 def _safe(value: str, label: str) -> str:
     """Validate that *value* contains only safe path characters."""
@@ -39,7 +47,7 @@ def annual_object_path(station_id: str, year: int, sha256: str) -> str:
     """
     _safe(station_id, "station_id")
     _safe(sha256, "sha256")
-    return f"noaa/raw/historical/{year}/{sha256}-{station_id}h{year}.txt.gz"
+    return f"{NOAA_RAW_PREFIX}/historical/{year}/{sha256}-{station_id}h{year}.txt.gz"
 
 
 def monthly_object_path(station_id: str, year: int, month: int, sha256: str) -> str:
@@ -50,7 +58,7 @@ def monthly_object_path(station_id: str, year: int, month: int, sha256: str) -> 
     """
     _safe(station_id, "station_id")
     _safe(sha256, "sha256")
-    return f"noaa/raw/monthly/{year}/{month:02d}/{sha256}-source.txt.gz"
+    return f"{NOAA_RAW_PREFIX}/monthly/{year}/{month:02d}/{sha256}-source.txt.gz"
 
 
 def realtime_object_path(
@@ -66,7 +74,7 @@ def realtime_object_path(
     _safe(station_id, "station_id")
     _safe(sha256, "sha256")
     y, m, d = snapshot_date.year, snapshot_date.month, snapshot_date.day
-    return f"noaa/raw/realtime/{y}/{m:02d}/{d:02d}/{sha256}-snapshot.txt"
+    return f"{NOAA_RAW_PREFIX}/realtime/{y}/{m:02d}/{d:02d}/{sha256}-snapshot.txt"
 
 
 def full_gcs_uri(bucket: str, object_path: str) -> str:

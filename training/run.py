@@ -13,6 +13,7 @@ import numpy as np
 import sklearn
 
 from packages.ml.artifacts import ModelStore
+from packages.gcs.paths import TRAINING_DATASET_PREFIX
 from packages.ml.features import FEATURE_NAMES, build_samples, chronological_split
 from training import train_classification, train_clustering, train_regression
 
@@ -30,11 +31,12 @@ def train_suite(daily_rows: list[Any], store: ModelStore, gateway: Any, *, versi
     snapshot.to_parquet(buffer, index=False, engine="pyarrow")
     dataset_bytes = buffer.getvalue()
     dataset_hash = hashlib.sha256(dataset_bytes).hexdigest()
-    dataset_info = store.client.upload_if_absent(store.bucket, f"datasets/training/wave-height/{version}/dataset.parquet",
+    dataset_path = f"{TRAINING_DATASET_PREFIX}/wave-height/{version}/dataset.parquet"
+    dataset_info = store.client.upload_if_absent(store.bucket, dataset_path,
                                                  dataset_bytes, "application/vnd.apache.parquet")
     if dataset_info.content_sha256 != dataset_hash:
         raise ValueError("dataset snapshot hash mismatch")
-    if hashlib.sha256(store.client.download(store.bucket, f"datasets/training/wave-height/{version}/dataset.parquet", dataset_info.generation)).hexdigest() != dataset_hash:
+    if hashlib.sha256(store.client.download(store.bucket, dataset_path, dataset_info.generation)).hexdigest() != dataset_hash:
         raise ValueError("stored dataset snapshot hash mismatch")
     split_body = {"dataset_name": "wave-height-next-day", "dataset_version": version,
         "station_id": "51201", "task_type": "regression", "target_metric": "WVHT", "target_horizon_days": 1,

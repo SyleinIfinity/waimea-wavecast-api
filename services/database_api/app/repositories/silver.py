@@ -22,6 +22,9 @@ def upsert_silver_batch(conn, batch: SilverBatch) -> dict:
         if PRIORITY[row.source_kind] < PRIORITY[current["source_kind"]]:
             counts["skipped"] += 1
             continue
+        if current["source_kind"] == row.source_kind and current["measurement_sha256"] == row.measurement_sha256:
+            counts["duplicate"] += 1
+            continue
         if all(current[key] == values[key] for key in (
             "source_kind", "measurement_sha256", "source_file_id", "quality_status", "quality_flags", "missing_fields"
         )):
@@ -36,7 +39,7 @@ def upsert_silver_batch(conn, batch: SilverBatch) -> dict:
         )
         conn.execute(query, [adapted(values[k], k) for k in columns] + [row.station_id, row.observed_at])
         counts["updated"] += 1
-    return counts
+    return {**counts, "revised": counts["updated"]}
 
 
 def upsert_daily_features(conn, item: DailyFeatures) -> dict:

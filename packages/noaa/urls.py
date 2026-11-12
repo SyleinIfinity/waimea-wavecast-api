@@ -6,7 +6,7 @@ NOAA NDBC URL builders for station 51201.
 Annual:  https://www.ndbc.noaa.gov/data/historical/stdmet/{station}h{year}.txt.gz
 Monthly: https://www.ndbc.noaa.gov/data/stdmet/{Mon}/{station}{month_code}{year}.txt.gz
          where Mon = Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec
-         and   month_code = 1..12 (integer, NOT zero-padded in older files)
+         and   month_code = 1..9, a, b, c (NOAA archive convention)
 Realtime: https://www.ndbc.noaa.gov/data/realtime2/{station}.txt
 
 References: Notebook Waimea_NOAA_51201_Incremental_2005_Present.ipynb
@@ -49,7 +49,8 @@ def monthly_url(year: int, month: int, station_id: str = STATION_ID) -> str:
     if month < 1 or month > 12:
         raise ValueError(f"Month {month} out of range 1–12")
     mon_dir = _MONTH_DIRS[month]
-    return f"{_BASE}/data/stdmet/{mon_dir}/{station_id}{month}{year}.txt.gz"
+    month_code = str(month) if month <= 9 else "abc"[month - 10]
+    return f"{_BASE}/data/stdmet/{mon_dir}/{station_id}{month_code}{year}.txt.gz"
 
 
 def realtime_url(station_id: str = STATION_ID) -> str:

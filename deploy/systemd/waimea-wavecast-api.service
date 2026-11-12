@@ -1,0 +1,19 @@
+[Unit]
+Description=Waimea WaveCast Database API
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStartPre=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml config --quiet
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml up -d --no-deps --no-build database-api
+ExecStartPost=/usr/bin/bash deploy/scripts/health-check.sh
+ExecStop=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml stop database-api
+TimeoutStartSec=180
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target
