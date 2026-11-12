@@ -56,6 +56,15 @@ def test_health_and_empty_public_response(client):
     assert response.json() == {"status": "empty", "data_type": "observation", "data": None}
 
 
+def test_production_swagger_uses_private_paths(client):
+    assert client.get("/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+    page = client.get("/private/docs")
+    assert page.status_code == 200
+    assert "/private/openapi.json" in page.text
+    assert client.get("/private/openapi.json").status_code == 200
+
+
 def test_internal_requires_token_and_idempotency(client):
     payload = {"file_id": 1, "rows": [{"row_sha256": "a" * 64, "raw_line": "test"}]}
     assert client.post("/internal/v1/raw-observations/bulk", json=payload).status_code == 401

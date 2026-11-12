@@ -52,7 +52,10 @@ TL04/TL05 worker URLs and returns `202` when the workers accept the jobs.
 It requires those worker services to exist; this service does not synthesize
 their results. No training is requested by rebuild.
 
-The API's OpenAPI schema is at `/openapi.json`; `/docs` is disabled in
+The API's OpenAPI schema is at `/openapi.json` outside production. In production,
+Swagger UI is at `/private/docs` and its schema at `/private/openapi.json`;
+Nginx restricts both to VM loopback plus HTTP Basic Auth, for SSH tunnel access.
+The default `/docs` remains disabled in
 production. `/health/live` checks only this process, while `/health/ready`
 checks PostgreSQL with `SELECT 1`. Configure Nginx to expose only `/api/v1`
 and health routes; keep `/internal/v1` on the private service network.

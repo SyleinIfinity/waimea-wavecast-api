@@ -10,3 +10,17 @@
 8. Monitoring, alerting, backup restore tests, CI/CD and Gold-rebuild demo.
 
 Polling configuration in starter is 1800s, not a guaranteed upstream publication SLA. Model training should not be coupled to each API request.
+
+## Project decision: production-first integration and validation (TL07 onward)
+
+For TL07, TL08, TL09 and later implementation tasks, inspect the actual VM,
+Cloud SQL, GCS and service configuration before coding. Run unit and contract
+tests, deploy the tested change with the production Docker Compose/systemd
+configuration, then verify real data and artifacts in Cloud SQL and GCS.
+Report observed container, API, database and artifact state. A task requiring
+production integration is not complete from fake/local tests alone.
+
+Protect existing data and keep a rollback path. Assess impact and request
+approval before breaking schema migrations, bulk backfills, deletion, IAM or
+firewall changes, or VM reboot. Do not disturb the Minecraft service. Design
+and preparation-only tasks may explicitly stop before production deployment.

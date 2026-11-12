@@ -1,8 +1,8 @@
 # TL06 — Real NOAA Ingestion Integration
 
 **Date:** 2026-11-12  
-**Branch:** `developer`  
-**Scope:** NOAA NDBC station 51201 ingestion only. No commit, push, schema migration, IAM change, production database write, or unrelated service restart.
+**Branch:** implementation began on `developer`; production deployment continued on `feature/tl06-Ingestion` as requested.
+**Scope:** NOAA NDBC station 51201 ingestion only. No commit or push by this deployment run; no schema migration, IAM change, bulk backfill, or unrelated service restart.
 
 ## 1. Executive Summary
 
@@ -12,8 +12,13 @@ immutable raw object, registers source metadata, upserts Bronze raw rows, and
 upserts Silver observations with Raw and Source File lineage. A real NOAA
 realtime sample completed this path through a temporary Database API and
 isolated PostgreSQL database, with real objects in the private
-`waimea-noaa/test/tl06/` namespace. The production Ingestion service has **not**
-been started and the production database has **not** received TL06 writes.
+`waimea-noaa/test/tl06/` namespace. On 2026-11-12 the updated Database API and
+Ingestion service were deployed to the VM. A bounded realtime poll then wrote
+2,160 authentic NOAA observations to production Cloud SQL and one immutable
+raw object to the official GCS prefix. A pinned replay produced only
+duplicates. **TL06 production acceptance: COMPLETED / PRODUCTION VERIFIED**
+for realtime ingestion, subject to the historical and recovery limitations
+below.
 
 ## 2. Initial Findings
 
@@ -49,9 +54,14 @@ been started and the production database has **not** received TL06 writes.
 | `.env.example`, `.env.production.example` | Explicit adapter mode; production example uses real adapters and `waimea-noaa`. |
 | `tests/tl06/`, `tests/tl01/test_api.py` | Unit/contract coverage and additive API response fixture. |
 
-No database schema was changed. The Compose Ingestion service already uses the
-common image, internal network, and `.env` file; production overlay already
-uses `.env.production`. No port is published for Ingestion.
+No database schema was changed. The Compose Ingestion service uses the common
+image, internal network and `.env` file; the production overlay uses
+`.env.production`. No port is published for Ingestion. The production deployment
+also updated `deploy/systemd/waimea-wavecast-api.service`,
+`deploy/scripts/deploy.sh`, and `deploy/scripts/health-check.sh` so both managed
+services use the same overlay after reboot; the script no longer starts every
+worker. `docs/deployment.md` and `docs/implementation-roadmap.md` record the
+new operating procedure and production-first decision for TL07 onward.
 
 ## 4. Architecture & Data Flow
 
@@ -109,6 +119,8 @@ replay queue. Avoid unattended large backfills until those controls are added.
 | Compose and existing production Database API | `docker compose config -q`; `curl` against localhost port 8000 | **PASS:** Compose valid; production Database API live 200 and ready 200. |
 | Standalone Ingestion image | `docker build -f services/ingestion/Dockerfile` and application import in the built image | **PASS:** build and import succeeded. |
 | GCS namespace cleanup | Bucket listing for `test/tl06/` from container | **PASS:** 0 objects remaining. |
+| Production realtime poll | Real NOAA, real production Ingestion and Database API, Cloud SQL, official GCS prefix | **PASS:** 2,160 Silver inserted, 0 revised/duplicate; direct database and object verification below. |
+| Production pinned replay | Same GCS generation, no new NOAA download | **PASS:** 0 Raw/Silver inserted, 2,160 Raw duplicates, 2,160 Silver duplicates, 0 revisions. |
 
 The isolated database used Docker network `waimea-tl06-net`, PostgreSQL
 container `waimea-tl06-pg`, and temporary API container `waimea-tl06-api`.
@@ -121,30 +133,95 @@ API still returned live 200 and ready 200 afterward.
 
 ## 8. Deployment Status
 
-Code and example configuration are prepared on branch `developer`. The
-production Database API container remains running its previous image. The
-Ingestion service is not running in the production Compose project. Its
-dependency readiness was verified only in an ephemeral container. The VM
-service account successfully accessed the private bucket through ADC; no key
-file or IAM change was needed for the tested operations.
+### Production Deployment Summary — 2026-11-12
 
-After review, deploy the updated Database API first because Ingestion requires
-the additive `raw_ids` response; then start only Ingestion with the production
-overlay. Confirm `.env.production` has `INGESTION_ADAPTER_MODE=real`,
-`DATABASE_API_URL=http://database-api:8000`, a matching `INTERNAL_API_TOKEN`,
-and `GCS_RAW_BUCKET=waimea-noaa`. Run `docker compose -f compose.yaml -f
-deploy/compose.prod.yaml up -d --build database-api ingestion` during a
-planned service window; check both services' `/health/live` and
-`/health/ready` from the internal network. Keep Ingestion off public Nginx.
-Starting it does not schedule polling; trigger a small, reviewed poll or
-backfill only when production writes are authorized.
+The VM `minecraft` now runs these two production Compose services only:
+
+| Service | Image digest (local) | State / exposure |
+|---|---|---|
+| `database-api` | `sha256:d6400945a9f89b66cda54eb77b903207529474390a1570b0b8ea965983022bfa` | Running, host bound to `127.0.0.1:8000`. |
+| `ingestion` | `sha256:e0fd5bf5497620648d301a41de1b2040ed4909d9fc95753d660a288728d7abd7` | Running on internal Compose network, no public port. |
+
+The old Database API image remains tagged locally as
+`waimea-wavecast-backend-database-api:pre-tl06` for service rollback. Both
+containers use `restart: unless-stopped`. The installed and enabled systemd
+unit now starts exactly Database API and Ingestion using
+`compose.yaml` + `deploy/compose.prod.yaml` and `.env.production` after VM
+reboot. `sudo bash deploy/scripts/health-check.sh` passed for both services.
+No VM reboot was performed. Nginx and other workers were not restarted.
+The Ingestion container was restarted by Compose after acceptance;
+`/health/ready` returned 200 again, demonstrating that the production
+environment and ADC configuration persisted across a container restart.
+
+Both `.env` and `.env.production` have mode `0600` and matching values for
+`INGESTION_ADAPTER_MODE=real`, `DATABASE_API_URL`, `GCS_RAW_BUCKET`, Cloud SQL
+host/port/name/user/TLS mode and internal token. Password and token values
+were checked for presence/equality only and were not printed. Containers used
+VM service account ADC; no JSON key or IAM change was required.
+
+### Production NOAA → GCS → Cloud SQL Evidence
+
+At `2026-11-12T08:57:12Z`, the authenticated production Ingestion endpoint
+ran one realtime poll for NOAA NDBC station 51201. The source file was 203,228
+bytes and parsed into 2,160 observations with 0 parse errors. Its source URL
+was `https://www.ndbc.noaa.gov/data/realtime2/51201.txt`.
+
+| Check | Before | After poll | After pinned replay |
+|---|---:|---:|---:|
+| `bronze.source_files` | 0 | 1 | 1 |
+| `bronze.raw_observations` | 0 | 2,160 | 2,160 |
+| `silver.wave_observations` | 0 | 2,160 | 2,160 |
+| Silver inserted / revised / duplicate reported | — | 2,160 / 0 / 0 | 0 / 0 / 2,160 |
+| Raw inserted / duplicate reported | — | 2,160 / 0 (count delta) | 0 / 2,160 |
+
+The Source File is `file_id=20`, `parse_status=parsed`, `source_row_count=2160`,
+`parse_error_count=0`, with valid observation times from
+`2026-09-28T00:26:00Z` through `2026-11-12T08:26:00Z`. All 2,160 Silver rows
+have unique station/timestamp keys. A read-only SQL join confirmed **2,160/2,160**
+Silver → Raw → Source File links, with the Source File pointing to the GCS
+object and generation below:
+
+```text
+gs://waimea-noaa/noaa/raw/realtime/2026/11/12/17af49b3ed2578dd0d594dccf5f76e224d366f40a309a77eee3b3578ab046280-snapshot.txt
+generation: 1794473832387628
+SHA-256: 17af49b3ed2578dd0d594dccf5f76e224d366f40a309a77eee3b3578ab046280
+size: 203228 bytes
+```
+
+Downloading that pinned generation from GCS in a container produced the
+recorded byte count and SHA-256. The production object was retained. A replay
+of that exact object/generation yielded 2,160 Raw duplicates and 2,160 Silver
+duplicates, with no insertion or revision. No fabricated NOAA correction was
+written to production.
+
+### Production Health and Isolation
+
+- Database API `/health/live` and `/health/ready`: **200 / 200** after deploy.
+- Ingestion `/health/live` and `/health/ready` inside its container:
+  **200 / 200**. Poll without `X-Internal-Token`: **401**; authenticated poll:
+  **200** with `success=true` and verified data writes.
+- Public `/api/v1/observations/latest`: **200**, station 51201,
+  `observed_at=2026-11-12T08:26:00Z`. Public `/health/ready`: **200**.
+  Public `/internal/v1/ingestion/poll`: **404**.
+- systemd `waimea-wavecast-api`: **enabled, active**; Nginx: **active**.
+  Compose shows only Database API and Ingestion. Both have
+  `restart: unless-stopped`. No Minecraft service or other worker was changed.
+
+### Issues Encountered and Resolution
+
+- Immediate health probes during container startup briefly returned connection
+  refused. Retrying after the application initialized returned 200. The
+  installed health script polls readiness rather than assuming instant start.
+- The health script requires Docker access; the normal deployment path invokes
+  it as root through systemd or `sudo bash deploy/scripts/deploy.sh`.
+- No write, checksum, lineage or idempotency error occurred during the
+  production poll and replay. No rollback was needed.
 
 ## 9. Known Limitations
 
-- Production NOAA→GCS→Cloud SQL write path is **not verified**. The safe
-  end-to-end test used isolated PostgreSQL and the real private GCS bucket.
-- No safe staging Cloud SQL database was available. No production rows were
-  created, changed or deleted by TL06 tests.
+- The production realtime path is verified. Historical annual/monthly feeds
+  remain unverified against production. The earlier safe end-to-end test used
+  isolated PostgreSQL and the real private GCS bucket.
 - Historical annual/monthly sources were not run end to end against live NOAA;
   a 2025 October monthly URL check returned 404. NOAA publication rules and
   year/month availability need a targeted live check before bulk backfill.
@@ -159,9 +236,9 @@ backfill only when production writes are authorized.
 
 ## 10. Next Phase Dependencies (TL07)
 
-TL07 may read Silver observations through the HTTP Database gateway and build
-daily features only after a controlled production ingest (or staging dataset)
-has established real source coverage. It should use `raw_id` and Source File
+TL07 may now read the 2,160 real Silver observations through the HTTP Database
+gateway and build daily features after checking period and quality coverage.
+It should use `raw_id` and Source File
 GCS metadata for traceability, define quality thresholds/quarantine for parse
 errors, and verify date/timezone boundaries. Automatic replay/orphan detection
 and historical URL validation should precede large unattended backfills.
@@ -170,14 +247,17 @@ and historical URL validation should precede large unattended backfills.
 
 | Criterion | Status | Evidence / remaining work |
 |---|---|---|
-| Real HTTP DatabaseGateway and production real GCS adapter | PASS | Implemented, Docker tests, ephemeral container readiness. |
+| Real HTTP DatabaseGateway and production real GCS adapter | PASS | Running in production Compose; authenticated poll and object verification. |
 | Actual NOAA realtime download and parse | PASS | 203,134 bytes, 2,159 rows parsed. |
 | Real GCS raw object write/read/delete | PASS | Full payload round trip via VM ADC in container; test namespace empty afterward. |
 | Actual NOAA sample through GCS and PostgreSQL | PASS | Three real source rows through isolated PostgreSQL and temporary API, with 3/3 lineage. |
 | Idempotent repeat and controlled correction | PASS | 3/3 duplicates on repeat; 1 revised and 2 duplicates on controlled change. |
 | Partial failure and pinned replay | PASS | Injected DB failure then successful replay against real GCS/isolated DB. |
 | NOAA error/auth/health checks | PASS | Unit/contract tests; ephemeral Ingestion 200/200/401; production Database API 200/200. |
-| Compose validity and no production service interruption | PASS | `docker compose config -q`; only existing Database API running in production Compose. |
-| Live production Cloud SQL ingestion | NOT VERIFIED | Requires reviewed production write or safe staging DB. |
+| Compose validity and service isolation | PASS | `docker compose config -q`; only Database API and Ingestion running; Nginx/public API healthy. |
+| Live production Cloud SQL ingestion | PASS | One real poll: 1 Source File, 2,160 Raw, 2,160 Silver; 2,160/2,160 lineage. |
+| Production replay idempotency | PASS | Same pinned GCS generation: 0 inserted/revised, 2,160 Raw and Silver duplicates. |
+| Public API and internal route isolation | PASS | Latest observation 200 with NOAA timestamp; public internal Ingestion route 404; unauthenticated internal poll 401. |
+| Reboot configuration | PASS | Installed/enabled systemd unit starts both services with production overlay; VM reboot itself was not performed. |
 | Historical backfill availability across years | NOT VERIFIED | URLs and missing-period behavior need live bounded validation. |
-| Automatic crash recovery/orphan replay | NOT VERIFIED | Manual replay exists; automated durable recovery is outside TL06. |
+| Automatic crash recovery/orphan replay | FAIL | Manual replay exists; automated durable recovery is outside TL06. |

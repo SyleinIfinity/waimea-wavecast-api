@@ -25,7 +25,15 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
         yield
         db.close()
 
-    app = FastAPI(title="Waimea WaveCast Database API", version="1.0.0", lifespan=lifespan, docs_url="/docs" if settings.app_env != "production" else None)
+    production = settings.app_env == "production"
+    app = FastAPI(
+        title="Waimea WaveCast Database API",
+        version="1.0.0",
+        lifespan=lifespan,
+        docs_url="/private/docs" if production else "/docs",
+        openapi_url="/private/openapi.json" if production else "/openapi.json",
+        redoc_url=None if production else "/redoc",
+    )
     app.state.settings = settings
     app.state.db = db
     app.state.previews = {}
