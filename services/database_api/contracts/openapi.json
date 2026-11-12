@@ -3132,6 +3132,22 @@
           }
         }
       }
+    },
+    "/health": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
