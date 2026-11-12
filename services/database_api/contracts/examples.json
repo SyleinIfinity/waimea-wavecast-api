@@ -1,0 +1,39 @@
+{
+  "version": "tl01-v1",
+  "note": "Examples marked mock are contract fixtures, not NOAA observations.",
+  "latest_observation_empty": {
+    "status": "empty",
+    "data_type": "observation",
+    "data": null
+  },
+  "latest_observation_mock": {
+    "mock": true,
+    "status": "ok",
+    "data_type": "observation",
+    "data": {
+      "station_id": "51201",
+      "observed_at": "2026-01-01T00:00:00Z",
+      "wave_height_m": 1.2,
+      "dominant_period_s": null,
+      "mean_wave_direction_deg": null,
+      "sea_surface_temp_c": null,
+      "quality_status": "partial",
+      "source_kind": "realtime",
+      "source": "realtime",
+      "wave_direction_deg": null,
+      "sea_temperature_c": null,
+      "quality_flag": "partial"
+    }
+  },
+  "metrics_empty": {
+    "status": "empty",
+    "data": [],
+    "has_more": false,
+    "next_cursor": null
+  },
+  "job_accepted_mock": {
+    "mock": true,
+    "status": "accepted",
+    "jobs": [{"pattern_type": "time_series_metrics", "worker_response": {"job_id": 123}}]
+  }
+}
