@@ -39,19 +39,39 @@ services:
 
   analysis:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/analysis/Dockerfile
     command: uvicorn services.analysis.app.main:app --host 0.0.0.0 --port 8000
 
   clustering:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/clustering/Dockerfile
     command: uvicorn services.clustering.app.main:app --host 0.0.0.0 --port 8000
 
   prediction:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/prediction/Dockerfile
     command: uvicorn services.prediction.app.main:app --host 0.0.0.0 --port 8000
 
   classification:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/classification/Dockerfile
     command: uvicorn services.classification.app.main:app --host 0.0.0.0 --port 8000
+
+  scheduler:
+    <<: *worker
+    profiles: [tl05-scheduler]
+    build:
+      context: .
+      dockerfile: services/scheduler/Dockerfile
+    command: python -m services.scheduler.app.runner
 
 networks:
   waimea-internal:

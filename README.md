@@ -37,3 +37,22 @@ python -m uvicorn services.database_api.app.main:app --reload
 
 Swagger UI is at `http://127.0.0.1:8000/docs`. The root `.env` is loaded
 automatically. See `services/database_api/README.md` and `database/README.md`.
+
+## TL05 analytics and ML
+
+The analysis, clustering, prediction and classification workers expose authenticated
+`/internal/v1/*` jobs and keep model training in the one-off CLI. Start a worker
+from the repository root, for example:
+
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn services.analysis.app.main:app --port 8001
+.\.venv\Scripts\python.exe -m pytest -q tests/tl05
+```
+
+Workers read the root `.env`; set `INTERNAL_API_TOKEN`, `DATABASE_API_URL`, and
+`GCS_MODELS_BUCKET` before using real storage. Train from existing daily Silver
+features with `python -m training.cli --version VERSION --start-hst YYYY-MM-DD
+--end-hst YYYY-MM-DD`. Training creates draft models only; TL01 promotion requires
+reviewed evaluation and a verified artifact. `python -m services.scheduler.app.runner`
+runs the single-replica scheduler. In Compose it is opt-in: `docker compose --profile tl05-scheduler up -d scheduler`. Fixtures and local artifacts are for tests,
+never NOAA benchmark results.
