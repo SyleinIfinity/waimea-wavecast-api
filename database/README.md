@@ -1,7 +1,25 @@
-# Cloud SQL PostgreSQL
+# Waimea WaveCast database
 
-Production database lives in managed **Cloud SQL**, not in this git repository or an always-on DB container in Compose.
+PostgreSQL 17, database `waimea_wavecast`. The authoritative schema is the
+three SQL files in `migrations/`, copied without modification from the reviewed SQL v2 reference.
+The scripts do not ingest NOAA observations or create GCS resources.
 
-`migrations/001_init.sql` creates bronze/silver/gold schemas. Run SQL migrations explicitly using a migration account and a protected connection. Cloud SQL automated backup/PITR should be enabled separately.
+Choose **one** schema path for a database, using a migration-owner role:
 
-`dbwaimea.liems.io.vn` is an **optional private DNS alias**, not a requirement when using Cloud SQL Auth Proxy.
+* New database: `psql -v ON_ERROR_STOP=1 -d waimea_wavecast -f database/migrations/01_init_full.sql`
+* Existing 21-table v1 database: back up first, then run `02_upgrade_from_v1.sql` instead.
+
+Run `psql -v ON_ERROR_STOP=1 -d waimea_wavecast -f database/migrations/03_verify.sql`
+after either path. Inspect the printed table, view, trigger, and row counts;
+the final `PASS` notice alone does not assert exact view/trigger counts.
+Do not run both initialization paths routinely. `IF NOT EXISTS` cannot repair
+arbitrary manual schema drift. Never use these scripts to drop data.
+
+The API role needs `USAGE` on all three schemas; SELECT on public read tables;
+INSERT/UPDATE on its write tables; and USAGE on identity sequences. Grant
+these explicitly from the migration owner. Keep credentials in environment
+variables or a secret store, never in SQL or Git.
+
+The older `migrations/001_init.sql` is a scaffold with an incompatible table
+layout. Do not run it against the v2 `waimea_wavecast` database. Use the v2
+files above for new installs or the documented v1 upgrade path.
