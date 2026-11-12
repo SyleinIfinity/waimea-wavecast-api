@@ -10,7 +10,8 @@ from packages.noaa.urls import monthly_url, realtime_url
 
 
 def response(status: int, data: bytes = b"payload"):
-    return Mock(status_code=status, ok=status < 400, iter_content=Mock(return_value=[data]))
+    return Mock(status_code=status, ok=status < 400, headers={},
+                iter_content=Mock(return_value=[data]))
 
 
 def test_month_codes_for_final_quarter():
@@ -45,3 +46,15 @@ def test_timeout_stops_after_limit(monkeypatch):
     with pytest.raises(requests.Timeout):
         client.download(realtime_url())
     assert get.call_count == 2
+
+
+def test_conditional_request_reuses_cached_payload(monkeypatch):
+    client = NOAAClient(max_retries=0)
+    first = response(200)
+    first.headers = {"ETag": '"abc"'}
+    second = response(304)
+    get = Mock(side_effect=[first, second])
+    monkeypatch.setattr(client._session, "get", get)
+    assert client.download(realtime_url()) == b"payload"
+    assert client.download(realtime_url()) == b"payload"
+    assert get.call_args.kwargs["headers"] == {"If-None-Match": '"abc"'}

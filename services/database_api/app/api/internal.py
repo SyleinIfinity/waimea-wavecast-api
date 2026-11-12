@@ -7,7 +7,7 @@ from services.database_api.app.repositories.common import json_safe
 from services.database_api.app.schemas.analytics import GoldBatch
 from services.database_api.app.schemas.common import JobCreate, JobUpdate
 from services.database_api.app.schemas.ml import ClassificationSchemeIn, ClusterCentroidIn, DatasetSplitIn, EvaluationIn, EvaluationSampleIn, ModelIn, TrainingRunIn
-from services.database_api.app.schemas.observations import DailyFeatures, GapIn, IngestionRunIn, IngestionRunUpdate, QualityIssueIn, RawBatch, SilverBatch, SourceFileIn
+from services.database_api.app.schemas.observations import DailyFeatures, GapIn, GapReconcileIn, IngestionRunIn, IngestionRunUpdate, QualityIssueIn, QualityBatch, RawBatch, SilverBatch, SourceFileIn
 from services.database_api.app.security import internal_auth
 
 
@@ -75,12 +75,21 @@ def upsert_silver_batch(request: Request, body: SilverBatch, idempotency_key: st
 
 
 @router.get("/silver/observations")
-def get_observations(request: Request, start: datetime, end: datetime, limit: int = Query(500, ge=1, le=1000)):
+def get_observations(request: Request, start: datetime, end: datetime, limit: int = Query(500, ge=1, le=1000), after: datetime | None = None):
     if start.tzinfo is None or end.tzinfo is None or end < start or (end - start).days > request.app.state.settings.max_query_days:
         raise HTTPException(422, "invalid UTC time window")
     with connection(request) as conn:
-        rows = conn.execute("SELECT * FROM silver.wave_observations WHERE station_id='51201' AND observed_at BETWEEN %s AND %s ORDER BY observed_at LIMIT %s", (start, end, limit)).fetchall()
+        rows = conn.execute("SELECT * FROM silver.wave_observations WHERE station_id='51201' AND observed_at >= %s AND observed_at < %s AND (%s::timestamptz IS NULL OR observed_at > %s) ORDER BY observed_at LIMIT %s", (start, end, after, after, limit)).fetchall()
     return {"data": json_safe(rows)}
+
+
+@router.patch("/silver/observations/quality")
+def apply_quality(request: Request, body: QualityBatch, idempotency_key: str | None = Header(default=None)):
+    key_required(idempotency_key)
+    if len(body.rows) > request.app.state.settings.max_batch_size:
+        raise HTTPException(422, "batch too large")
+    with connection(request) as conn:
+        return silver.apply_quality_batch(conn, body)
 
 
 @router.put("/silver/daily-features")
@@ -103,6 +112,27 @@ def save_gap(request: Request, body: GapIn, idempotency_key: str | None = Header
     key_required(idempotency_key)
     with connection(request) as conn:
         return silver.save_gap(conn, body) or {"duplicate": True}
+
+
+@router.post("/silver/gaps/reconcile")
+def reconcile_gaps(request: Request, body: GapReconcileIn):
+    from datetime import timedelta
+    with connection(request) as conn:
+        conn.execute("SELECT pg_advisory_xact_lock(hashtextextended('tl07b:51201:gaps',0))")
+        resolved = conn.execute(
+            "UPDATE silver.observation_gaps SET resolved_at=now() WHERE station_id='51201' "
+            "AND gap_start_at>%s AND gap_start_at<%s AND resolved_at IS NULL "
+            "AND NOT (gap_start_at=ANY(%s::timestamptz[])) RETURNING gap_id",
+            (body.window_start, body.window_end, body.missing_slots),
+        ).fetchall()
+        for slot in body.missing_slots:
+            conn.execute(
+                "INSERT INTO silver.observation_gaps(station_id,gap_start_at,gap_end_at,assumed_interval_min,estimated_missing_slots,notes) "
+                "VALUES ('51201',%s,%s,%s,1,'source_gap_candidate') "
+                "ON CONFLICT (station_id,gap_start_at,gap_end_at) DO UPDATE SET resolved_at=NULL",
+                (slot, slot + timedelta(minutes=body.cadence_minutes), body.cadence_minutes),
+            )
+    return {"open": len(body.missing_slots), "resolved": len(resolved)}
 
 
 @router.get("/silver/daily-features")

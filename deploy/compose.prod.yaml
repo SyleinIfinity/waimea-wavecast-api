@@ -7,6 +7,8 @@ services:
     env_file: [ .env.production ]
   preprocessing:
     env_file: [ .env.production ]
+  pipeline-scheduler:
+    env_file: [ .env.production ]
   analysis:
     env_file: [ .env.production ]
   clustering:

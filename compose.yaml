@@ -36,6 +36,14 @@ services:
   preprocessing:
     <<: *worker
     command: uvicorn services.preprocessing.app.main:app --host 0.0.0.0 --port 8000
+    mem_limit: 768m
+    cpus: 0.75
+
+  pipeline-scheduler:
+    <<: *worker
+    command: python -m services.scheduler.app.tl07b_runner
+    mem_limit: 256m
+    cpus: 0.25
 
   analysis:
     <<: *worker

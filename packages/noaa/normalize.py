@@ -110,6 +110,12 @@ def normalize_field(field: str, raw_value: str) -> NormalizedMeasurement:
             validation_issue=f"non-numeric: {raw_value!r}",
         )
 
+    # NOAA archives vary decimal formatting (99.0, 99.00, 99.000).
+    # Compare sentinel magnitude after parsing so equivalent spellings stay missing.
+    numeric_sentinels = {float(item) for item in sentinels if item != "MM"}
+    if numeric in numeric_sentinels:
+        return NormalizedMeasurement(field=field, raw_value=raw_value, value=None, is_sentinel=True)
+
     # 3. Physical domain check
     validator = _VALIDATORS.get(field)
     if validator is not None:

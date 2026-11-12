@@ -1,12 +1,38 @@
 from services.database_api.app.repositories.common import insert_row, upsert_row
-from services.database_api.app.schemas.observations import DailyFeatures, GapIn, QualityIssueIn, SilverBatch
+from services.database_api.app.schemas.observations import DailyFeatures, GapIn, QualityIssueIn, QualityBatch, SilverBatch
+from psycopg.types.json import Jsonb
 
 
 PRIORITY = {"realtime": 1, "historical_monthly": 2, "historical_annual": 3}
 
 
+def apply_quality_batch(conn, batch: QualityBatch) -> dict:
+    counts = {"updated": 0, "duplicate": 0, "stale": 0, "missing": 0}
+    for row in batch.rows:
+        current = conn.execute(
+            "SELECT measurement_sha256, quality_status, quality_flags FROM silver.wave_observations "
+            "WHERE station_id=%s AND observed_at=%s FOR UPDATE",
+            (row.station_id, row.observed_at),
+        ).fetchone()
+        if current is None:
+            counts["missing"] += 1
+        elif current["measurement_sha256"] != row.measurement_sha256:
+            counts["stale"] += 1
+        elif current["quality_status"] == row.quality_status and current["quality_flags"] == row.quality_flags:
+            counts["duplicate"] += 1
+        else:
+            conn.execute(
+                "UPDATE silver.wave_observations SET quality_status=%s, quality_flags=%s "
+                "WHERE station_id=%s AND observed_at=%s",
+                (row.quality_status, Jsonb(row.quality_flags), row.station_id, row.observed_at),
+            )
+            counts["updated"] += 1
+    return counts
+
+
 def upsert_silver_batch(conn, batch: SilverBatch) -> dict:
     counts = {"inserted": 0, "updated": 0, "duplicate": 0, "skipped": 0}
+    changed_times = []
     for row in batch.rows:
         values = row.model_dump()
         conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (f"silver:{row.station_id}:{row.observed_at.isoformat()}",))
@@ -18,6 +44,7 @@ def upsert_silver_batch(conn, batch: SilverBatch) -> dict:
         if current is None:
             insert_row(conn, "silver", "wave_observations", values)
             counts["inserted"] += 1
+            changed_times.append(row.observed_at)
             continue
         if PRIORITY[row.source_kind] < PRIORITY[current["source_kind"]]:
             counts["skipped"] += 1
@@ -39,7 +66,10 @@ def upsert_silver_batch(conn, batch: SilverBatch) -> dict:
         )
         conn.execute(query, [adapted(values[k], k) for k in columns] + [row.station_id, row.observed_at])
         counts["updated"] += 1
-    return {**counts, "revised": counts["updated"]}
+        changed_times.append(row.observed_at)
+    return {**counts, "revised": counts["updated"],
+            "changed_from": min(changed_times).isoformat() if changed_times else None,
+            "changed_to": max(changed_times).isoformat() if changed_times else None}
 
 
 def upsert_daily_features(conn, item: DailyFeatures) -> dict:

@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     admin_api_token: str = ""
     app_env: str = "development"
     public_origin: str = "http://localhost:5173"
+    allowed_origins: str = ""
     ingestion_worker_url: str = "http://ingestion:8000"
     analysis_worker_url: str = "http://analysis:8000"
     clustering_worker_url: str = "http://clustering:8000"

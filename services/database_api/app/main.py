@@ -11,6 +11,8 @@ from psycopg_pool import PoolTimeout
 
 from services.database_api.app.api.admin import router as admin_router
 from services.database_api.app.api.internal import router as internal_router
+from services.database_api.app.api.pipeline import router as pipeline_router
+from services.database_api.app.api.derived import router as derived_router
 from services.database_api.app.api.public import router as public_router
 from services.database_api.app.config import Settings, get_settings
 from services.database_api.app.db.session import Database
@@ -37,9 +39,15 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
     app.state.settings = settings
     app.state.db = db
     app.state.previews = {}
-    app.add_middleware(CORSMiddleware, allow_origins=[settings.public_origin], allow_methods=["GET", "POST", "PATCH", "PUT"], allow_headers=["Content-Type", "X-Admin-Token", "X-Actor-ID", "X-Request-ID", "Idempotency-Key"], allow_credentials=False)
+    origins = list(dict.fromkeys(
+        origin.strip() for origin in (settings.public_origin, *settings.allowed_origins.split(","))
+        if origin.strip()
+    ))
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "POST", "PATCH", "PUT"], allow_headers=["Content-Type", "X-Admin-Token", "X-Actor-ID", "X-Request-ID", "Idempotency-Key"], allow_credentials=False)
     app.include_router(public_router)
     app.include_router(internal_router)
+    app.include_router(pipeline_router)
+    app.include_router(derived_router)
     app.include_router(admin_router)
 
     @app.middleware("http")

@@ -63,3 +63,12 @@ and health routes; keep `/internal/v1` on the private service network.
 The container receives the same `GCS_*` bucket settings as the workers, but the
 Database API does not itself read or write GCS objects. GCS connectivity is
 verified from inside this container with the real `RealGCSClient` and VM ADC.
+# TL07-B internal contracts
+
+The authenticated internal API now exposes Silver observation keyset
+pagination (`after`), measurement-hash-fenced QC updates, gap reconciliation,
+six-resolution Gold pagination, durable pipeline cycle claim/finish/status,
+and separate derived-imputation candidate storage/reconciliation. The
+corresponding additive SQL migrations are 04–07. Public Nginx routing does
+not expose `/internal/v1/*`; keep `INTERNAL_API_TOKEN` private.
+

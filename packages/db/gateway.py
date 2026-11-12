@@ -112,6 +112,10 @@ class DailyFeaturesDTO:
     max_wind_speed_ms: float | None
     good_quality_count: int = 0
     calculation_version: str = "v1"
+    missing_count: int = 0
+    suspect_count: int = 0
+    rejected_count: int = 0
+    unverified_count: int = 0
 
 
 @dataclass

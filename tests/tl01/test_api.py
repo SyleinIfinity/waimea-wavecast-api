@@ -88,6 +88,20 @@ def test_admin_cors_preflight_for_frontend(client):
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
 
 
+def test_cors_accepts_local_and_production_origins_only():
+    settings = Settings(app_env="production", public_origin="https://waimea.liems.io.vn",
+                        allowed_origins="https://waimea.liems.io.vn,http://localhost:5173")
+    with TestClient(create_app(settings, FakeDB())) as app_client:
+        for origin in ("http://localhost:5173", "https://waimea.liems.io.vn"):
+            response = app_client.options("/api/v1/observations/latest", headers={
+                "Origin": origin, "Access-Control-Request-Method": "GET"})
+            assert response.status_code == 200
+            assert response.headers["access-control-allow-origin"] == origin
+        denied = app_client.options("/api/v1/observations/latest", headers={
+            "Origin": "https://untrusted.example", "Access-Control-Request-Method": "GET"})
+        assert denied.status_code == 400
+
+
 def test_bad_time_window_and_bad_metric(client):
     assert client.get("/api/v1/observations", params={"start": "2026-01-01T00:00:00", "end": "2026-01-02T00:00:00"}).status_code == 422
     response = client.get("/api/v1/metrics/summary", params={"metric": "arbitrary SQL"}, headers={"X-Request-ID": "tl01-error-test"})

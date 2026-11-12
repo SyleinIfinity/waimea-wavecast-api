@@ -155,3 +155,12 @@ class TestColumnsInSource:
         raw = _make_file(HEADER_OLD, UNITS_OLD, DATA_OLD)
         result = parse_stdmet(raw)
         assert "PTDY" not in result.columns_in_source
+
+
+def test_early_annual_archive_without_hash_header():
+    payload = ("YYYY MM DD hh WD WSPD GST WVHT DPD APD MWD BAR ATMP WTMP DEWP VIS TIDE\n"
+               "2004 09 08 16 999 99.0 99.0 0.90 8.00 99.00 999 9999.0 999.0 27.2 999.0 99.0 99.00\n")
+    result = parse_stdmet(payload.encode(), "51201h2004.txt.gz")
+    assert len(result.rows) == 1
+    assert result.rows[0].raw_values["WVHT"] == "0.90"
+    assert "WDIR" in result.columns_in_source

@@ -108,11 +108,20 @@ class HttpDatabaseGateway:
     def get_observations(self, station_id: str, start_at: datetime, end_at: datetime) -> list[SilverObservationDTO]:
         if station_id != "51201":
             raise ValueError("only station 51201 is supported")
-        response = self._request("GET", "/internal/v1/silver/observations",
-                                 params={"start": start_at.isoformat(), "end": end_at.isoformat(), "limit": 1000})
-        rows = response["data"]
-        if len(rows) == 1000:
-            raise ValueError("observation page full; split the requested window")
+        rows = []
+        after = None
+        while True:
+            params = {"start": start_at.isoformat(), "end": end_at.isoformat(), "limit": 1000}
+            if after is not None:
+                params["after"] = after
+            page = self._request("GET", "/internal/v1/silver/observations", params=params)["data"]
+            rows.extend(page)
+            if len(page) < 1000:
+                break
+            cursor = page[-1]["observed_at"]
+            if cursor == after:
+                raise RuntimeError("observation pagination did not advance")
+            after = cursor
         names = {field.name for field in fields(SilverObservationDTO)}
         result = []
         for row in rows:
@@ -121,6 +130,31 @@ class HttpDatabaseGateway:
                 values["observed_at"] = datetime.fromisoformat(values["observed_at"].replace("Z", "+00:00"))
             result.append(SilverObservationDTO(**values))
         return result
+
+    def apply_quality_batch(self, rows: list[dict]) -> dict:
+        totals = {"updated": 0, "duplicate": 0, "stale": 0, "missing": 0}
+        for offset in range(0, len(rows), 500):
+            body = {"rows": _jsonable(rows[offset:offset + 500])}
+            result = self._request("PATCH", "/internal/v1/silver/observations/quality",
+                                   body=body, key=_key("quality", body))
+            for name in totals:
+                totals[name] += result[name]
+        return totals
+
+    def save_resolution_metrics(self, rows: list[dict]) -> dict:
+        saved = 0
+        for offset in range(0, len(rows), 500):
+            body = {"table": "resolution_metrics", "rows": _jsonable(rows[offset:offset + 500])}
+            saved += self._request("POST", "/internal/v1/gold/results/bulk",
+                                   body=body, key=_key("resolution_metrics", body))["saved"]
+        return {"saved": saved}
+
+    def reconcile_gaps(self, *, window_start: datetime, window_end: datetime,
+                       cadence_minutes: int, missing_slots: list[datetime]) -> dict:
+        body = _jsonable({"window_start": window_start, "window_end": window_end,
+                          "cadence_minutes": cadence_minutes, "missing_slots": missing_slots})
+        return self._request("POST", "/internal/v1/silver/gaps/reconcile", body=body,
+                             key=_key("gaps", body))
 
     def get_daily_features(self, station_id: str, start_hst: date, end_hst: date) -> list[DailyFeaturesDTO]:
         if station_id != "51201":

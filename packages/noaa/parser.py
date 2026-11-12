@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 _COLUMN_ALIASES: dict[str, str] = {
     "BAR": "PRES",   # older files used BAR for sea-level pressure
+    "WD": "WDIR",    # early annual archives used WD
 }
 
 # The 14 canonical NOAA Standard Meteorological fields (from the project notebook)
@@ -92,7 +93,9 @@ def detect_header(lines: list[str]) -> tuple[list[str], int]:
     """
     for i, line in enumerate(lines):
         stripped = line.strip()
-        if stripped.startswith("#"):
+        tokens = stripped.split()
+        if stripped.startswith("#") or (tokens and tokens[0] in ("YYYY", "YY") and
+                                         "MM" in tokens and "DD" in tokens and "hh" in tokens):
             raw_cols = stripped.split()
             # Normalize aliases and strip '#' prefix from first token
             cols = [_normalize_col(c) for c in raw_cols]

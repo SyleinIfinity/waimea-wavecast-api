@@ -1,5 +1,5 @@
 [Unit]
-Description=Waimea WaveCast Database API and Ingestion
+Description=Waimea WaveCast NOAA data pipeline
 Wants=network-online.target
 After=network-online.target docker.service
 Requires=docker.service
@@ -9,9 +9,9 @@ Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
 ExecStartPre=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml config --quiet
-ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml up -d --no-deps --no-build database-api ingestion
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml up -d --no-deps --no-build database-api ingestion preprocessing pipeline-scheduler
 ExecStartPost=/usr/bin/bash deploy/scripts/health-check.sh
-ExecStop=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml stop ingestion database-api
+ExecStop=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml stop pipeline-scheduler preprocessing ingestion database-api
 TimeoutStartSec=180
 TimeoutStopSec=60
 

@@ -24,3 +24,30 @@ Protect existing data and keep a rollback path. Assess impact and request
 approval before breaking schema migrations, bulk backfills, deletion, IAM or
 firewall changes, or VM reboot. Do not disturb the Minecraft service. Design
 and preparation-only tasks may explicitly stop before production deployment.
+
+## TL07-A result and TL07-B production state
+
+TL07-A implemented cadence-based missing detection, explicit quality gates,
+causal derived-data imputation, multi-resolution HST analytics and per-horizon
+benchmark contracts. A one-off production Compose container validated these
+modules against 2,160 real Silver observations without writing Cloud SQL data.
+The current snapshot has 17 inferred 30-minute gaps and all 2,160 rows are
+still `unverified`; Daily Features and registered models are absent. Short
+horizon persistence scores are exploratory, while 7-day and longer forecasts
+are not production-ready. See
+`docs/contributions/TL07-A_ALGORITHM_ENHANCEMENT.md` for evidence and limits.
+
+TL07-B has replaced the persistent Preprocessing fake gateway with the
+authenticated Database API, reviewed the initial 2,160 Silver rows, built
+HST Daily Features and six-resolution descriptive Gold, and activated a
+PostgreSQL-leased primary/retry scheduler. The initial production poll added
+seven real observations and propagated them through QC and Gold. Archive
+discovery counted actual nonmissing variables in 28 listed NOAA files; see
+`docs/contributions/TL07-B_HISTORY_COVERAGE.json` and the TL07-B report.
+
+Still required before TL08: calibrate NOAA publication waiting from ongoing
+arrivals, approve horizon-specific quality and imputation policies, validate
+derived estimates and uncertainty on held-out historical data, safely backfill
+selected archives, and test automatic pinned replay during a natural or
+isolated downstream failure. Do not treat the historical TL06 bulk load as
+publication-latency evidence. Prediction/model workers remain disabled.

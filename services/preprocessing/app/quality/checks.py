@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from math import isfinite
 from typing import Literal
 
 Severity = Literal["info", "warning", "error"]
@@ -62,6 +63,21 @@ def run_quality_checks(
     """
     result = QualityCheckResult(station_id=station_id, observed_at=observed_at)
     issues = result.issues
+
+    for field_code, value in values.items():
+        if value is not None and not isfinite(value):
+            issues.append(QualityIssue(field_code,"non_finite","error",str(value),
+                                       "measurement must be finite"))
+    for field_code in ("WVHT", "WSPD", "GST", "VIS"):
+        value = values.get(field_code)
+        if value is not None and isfinite(value) and value < 0:
+            issues.append(QualityIssue(field_code,"domain_violation","error",str(value),
+                                       "measurement cannot be negative"))
+    for field_code in ("DPD", "APD"):
+        value = values.get(field_code)
+        if value is not None and isfinite(value) and value <= 0:
+            issues.append(QualityIssue(field_code,"domain_violation","error",str(value),
+                                       "wave period must be positive"))
 
     # --- Wave height ---
     wvht = values.get("WVHT")

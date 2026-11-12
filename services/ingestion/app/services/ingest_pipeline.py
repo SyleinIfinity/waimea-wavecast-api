@@ -13,6 +13,7 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Literal
 
 from packages.db.gateway import (
@@ -54,6 +55,10 @@ class IngestResult:
     parse_errors: int = 0
     success: bool = False
     error: str | None = None
+    latest_observed_at: datetime | None = None
+    changed_from: datetime | None = None
+    changed_to: datetime | None = None
+    retry_after_seconds: int | None = None
 
 
 def _make_object_path(feed_key: FeedKey, year: int, month: int | None, sha256: str) -> str:
@@ -177,6 +182,17 @@ def run_ingest(
         except Exception as exc:
             logger.warning("Download failed for %s %s: %s", feed_key, period_label, exc)
             result.error = str(exc)
+            response = getattr(exc, "response", None)
+            if response is not None and response.status_code == 429:
+                retry_after = response.headers.get("Retry-After", "60")
+                try:
+                    seconds = float(retry_after)
+                except ValueError:
+                    try:
+                        seconds = (parsedate_to_datetime(retry_after) - datetime.now(timezone.utc)).total_seconds()
+                    except (TypeError, ValueError):
+                        seconds = 60
+                result.retry_after_seconds = min(3600, max(60, int(seconds)))
             return result
 
     if not raw_bytes:
@@ -194,6 +210,7 @@ def run_ingest(
     if not parse_result.rows:
         result.error = "NOAA payload contained no valid observations"
         return result
+    result.latest_observed_at = max(row.observed_at for row in parse_result.rows)
 
     fhash = file_sha256(raw_bytes)
     if obj_info is not None and obj_info.content_sha256 and obj_info.content_sha256 != fhash:
@@ -314,6 +331,11 @@ def run_ingest(
             result.silver_revised += silver_counts.get("revised", silver_counts.get("updated", 0))
             result.silver_duplicate += silver_counts["duplicate"]
             result.silver_skipped += silver_counts.get("skipped", 0)
+            if silver_counts.get("changed_from"):
+                changed_from = datetime.fromisoformat(silver_counts["changed_from"])
+                changed_to = datetime.fromisoformat(silver_counts["changed_to"])
+                result.changed_from = min(result.changed_from, changed_from) if result.changed_from else changed_from
+                result.changed_to = max(result.changed_to, changed_to) if result.changed_to else changed_to
         except Exception as exc:
             logger.error("DB upsert_silver_batch failed at offset %d: %s", i, exc)
             result.error = f"Silver upsert failed: {exc}"

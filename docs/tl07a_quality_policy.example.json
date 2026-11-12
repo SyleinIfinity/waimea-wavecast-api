@@ -1,0 +1,19 @@
+{
+  "status": "RESEARCH_ONLY_NOT_APPROVED_FOR_AUTOMATION",
+  "station_id": "51201",
+  "cadence_min_intervals": 48,
+  "cadence_min_support_ratio": 0.9,
+  "publication_wait_minutes": null,
+  "auto_imputation_enabled": false,
+  "quality_gate": {
+    "max_missing_ratio": 0.02,
+    "max_imputed_ratio": 0.0,
+    "max_unverified_ratio": 0.0,
+    "max_consecutive_missing": 1,
+    "max_freshness_minutes": 120,
+    "max_uncertainty_m": null,
+    "min_historical_coverage": 0.95,
+    "min_observed_samples": 100
+  },
+  "evidence": "2026-11-12 production snapshot: 2142/2159 intervals were 30 minutes; 17 isolated missing slots out of 2177 expected (0.78%). One 45-day bulk ingest cannot estimate NOAA publication latency or seasonal imputation error. The non-null values above are exploratory gates, not approved production thresholds."
+}

@@ -25,10 +25,14 @@ and deployment status.
 - `POST /internal/v1/ingestion/poll` ingests the current realtime feed.
 - `POST /internal/v1/ingestion/backfill` ingests historical feeds.
 - `POST /internal/v1/ingestion/reconcile` rechecks recent feeds.
+- `POST /internal/v1/ingestion/replay` accepts a pinned raw GCS object path and generation for automatic or manual recovery. The scheduler records both in PostgreSQL when a downstream step fails.
 
 The internal endpoints require `X-Internal-Token`. They are not published by
-Compose. Keep them off the public Nginx route. The service does not schedule
-polling itself.
+Compose. Keep them off the public Nginx route. `pipeline-scheduler` owns the
+00/30 UTC schedule and durable retries; Ingestion itself does not schedule.
+The running NOAA client uses conditional ETag or Last-Modified requests when
+the source provides them, and honors HTTP 429 `Retry-After`. Set
+`NOAA_MAX_RETRIES=0` so the scheduler's ten-attempt cycle is the request budget.
 
 ## Recovery
 

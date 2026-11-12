@@ -46,7 +46,10 @@ def aggregate(observations: list[Any], period: str, metric: str = "WVHT") -> lis
         groups[period_start(timestamp.astimezone(HST).date(), period)].append(row)
     result = []
     for day, group in sorted(groups.items()):
-        values = [float(value) for row in group if (value := get(row, field)) is not None]
+        values = [float(value) for row in group
+                  if (row.get("quality_status", "unverified") if isinstance(row, dict)
+                      else getattr(row, "quality_status", "unverified")) == "valid"
+                  and (value := get(row, field)) is not None]
         if metric == "MWD" and values:
             x = mean(cos(radians(v)) for v in values)
             y = mean(sin(radians(v)) for v in values)
@@ -79,17 +82,20 @@ def decompose(monthly: list[dict], *, seasonal_periods: int = 12) -> list[dict]:
     trend = [None] * len(rows)
     for i in range(seasonal_periods - 1, len(rows)):
         trend[i] = mean(values[i - seasonal_periods + 1:i + 1])
-    month_effect = {}
-    for month in range(1, 13):
-        residuals = [values[i] - t for i, t in enumerate(trend) if t is not None and dates[i].month == month]
-        month_effect[month] = mean(residuals) if residuals else 0.0
-    center = mean(month_effect.values())
-    return [{"station_id": "51201", "metric_code": rows[i]["metric_code"], "period_type": "month",
-             "period_start_hst": dates[i].isoformat(), "observed_value": values[i], "trend_value": trend[i],
-             "seasonal_value": month_effect[dates[i].month] - center,
-             "residual_value": None if trend[i] is None else values[i] - trend[i] - month_effect[dates[i].month] + center,
-             "decomposition_method": "trailing-moving-average", "seasonal_periods": seasonal_periods,
-             "analysis_version": "v1"} for i in range(len(rows))]
+    output = []
+    prior_residuals: dict[int, list[float]] = defaultdict(list)
+    for i in range(len(rows)):
+        # The seasonal estimate for month i uses *earlier* years only.
+        seasonal = mean(prior_residuals[dates[i].month]) if prior_residuals[dates[i].month] else None
+        output.append({"station_id": "51201", "metric_code": rows[i]["metric_code"], "period_type": "month",
+                       "period_start_hst": dates[i].isoformat(), "observed_value": values[i], "trend_value": trend[i],
+                       "seasonal_value": seasonal,
+                       "residual_value": values[i] - trend[i] - seasonal if trend[i] is not None and seasonal is not None else None,
+                       "decomposition_method": "trailing-moving-average", "seasonal_periods": seasonal_periods,
+                       "analysis_version": "v2-causal"})
+        if trend[i] is not None:
+            prior_residuals[dates[i].month].append(values[i] - trend[i])
+    return output
 
 
 def _rank(values: list[float]) -> list[float]:
@@ -137,8 +143,10 @@ def daily_correlations(observations: list[Any], start: date, end: date) -> list[
     for other in ("DPD", "WTMP", "WSPD"):
         pairs = []
         for rows in days.values():
-            x = [get(row, "wave_height_m") for row in rows if get(row, "wave_height_m") is not None]
-            y = [get(row, METRICS[other]) for row in rows if get(row, METRICS[other]) is not None]
+            paired = [(get(row, "wave_height_m"), get(row, METRICS[other])) for row in rows
+                      if get(row, "wave_height_m") is not None and get(row, METRICS[other]) is not None]
+            x = [item[0] for item in paired]
+            y = [item[1] for item in paired]
             pairs.append((median(x) if x else None, median(y) if y else None))
         for method in ("pearson", "spearman"):
             count, coefficient = correlation(pairs, method)

@@ -16,10 +16,22 @@ for attempt in {1..30}; do
   if "${compose[@]}" exec -T ingestion python -c \
       'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/health/ready", timeout=5)' \
       >/dev/null 2>&1; then
-    echo 'Database API and Ingestion ready'
-    exit 0
+    break
   fi
   sleep 2
 done
-echo 'Ingestion /health/ready did not become ready' >&2
-exit 1
+if ! "${compose[@]}" exec -T ingestion python -c \
+    'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/health/ready", timeout=5)' >/dev/null 2>&1; then
+  echo 'Ingestion /health/ready did not become ready' >&2
+  exit 1
+fi
+if ! "${compose[@]}" exec -T preprocessing python -c \
+    'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8000/health/ready", timeout=5)' >/dev/null 2>&1; then
+  echo 'Preprocessing /health/ready did not become ready' >&2
+  exit 1
+fi
+if ! "${compose[@]}" ps --status running --services | grep -qx 'pipeline-scheduler'; then
+  echo 'Pipeline scheduler is not running' >&2
+  exit 1
+fi
+echo 'Database API, Ingestion, Preprocessing and scheduler ready'

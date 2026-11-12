@@ -125,6 +125,11 @@ class TestNormalizeRow:
         assert result["WDIR"] is None     # sentinel 999
         assert result["PRES"] == pytest.approx(1013.0)
 
+    def test_historical_sentinel_decimal_spelling(self):
+        assert normalize_row({"WVHT": "99.00", "TIDE": "99.00", "MWD": "999.00"}) == {
+            "WVHT": None, "TIDE": None, "MWD": None,
+        }
+
 
 class TestVisibilityConversion:
     def test_nmi_unchanged(self):
