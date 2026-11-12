@@ -108,7 +108,10 @@ def finish(request: Request, body: Finish):
         attempt = row["attempt_count"]
         next_slot = body.slot_at + timedelta(minutes=30)
         if body.success:
-            expected = body.slot_at - timedelta(minutes=4)
+            # NOAA 51201 measurements are stamped :26/:56. Live first-detection
+            # evidence on 2026-11-12 shows roughly 24-35 minutes of delay.
+            # At slot :00/:30, the previous half-hour point is the due one.
+            expected = body.slot_at - timedelta(minutes=34)
             if body.latest_observed_at is not None and body.latest_observed_at >= expected:
                 had_changes = body.silver_inserted or body.silver_revised or row["silver_inserted"] or row["silver_revised"]
                 status, next_at = ("SUCCESS" if had_changes else "NO_NEW_DATA"), None
@@ -148,6 +151,16 @@ def status(request: Request):
     with request.app.state.db.connection() as conn:
         latest = conn.execute("SELECT * FROM gold.pipeline_cycles WHERE station_id='51201' ORDER BY slot_at DESC LIMIT 1").fetchone()
         counts = conn.execute("SELECT status,count(*) AS n FROM gold.pipeline_cycles WHERE station_id='51201' AND slot_at>now()-interval '24 hours' GROUP BY status").fetchall()
+        metrics = conn.execute(
+            "SELECT count(*) AS cycles,coalesce(sum(attempt_count),0) AS poll_attempts,"
+            "coalesce(sum(greatest(attempt_count-1,0)),0) AS retry_attempts,"
+            "coalesce(sum(silver_inserted),0) AS silver_inserted,"
+            "coalesce(sum(silver_revised),0) AS silver_revised,"
+            "count(*) FILTER (WHERE status='FAILED') AS failed_cycles,"
+            "max(last_poll_at) AS latest_poll_at,"
+            "max(last_poll_at) FILTER (WHERE status='SUCCESS') AS latest_successful_cycle_at "
+            "FROM gold.pipeline_cycles WHERE station_id='51201' AND slot_at>now()-interval '24 hours'"
+        ).fetchone()
         observations = conn.execute("SELECT max(observed_at) AS latest_observed_at,count(*) AS total,"
                                     "count(*) FILTER (WHERE quality_status='valid') AS valid,"
                                     "count(*) FILTER (WHERE quality_status='suspect') AS suspect,"
@@ -159,6 +172,7 @@ def status(request: Request):
     if latest:
         latest = {key: value for key, value in latest.items() if key not in ("lease_token", "gcs_uri")}
     return {"latest": json_safe(latest), "last_24h": json_safe(counts),
+            "metrics_last_24h": json_safe(metrics),
             "silver_last_7d": json_safe(observations), "open_gap_candidates": gaps["open"],
             "gold": json_safe(gold)}
 
@@ -178,3 +192,37 @@ def resolution_metrics(request: Request, resolution: str, start: datetime, end: 
             (resolution, start, end, after, after, limit),
         ).fetchall()
     return {"data": json_safe(rows), "next_after": rows[-1]["period_start_at"].isoformat() if len(rows) == limit else None}
+
+
+@router.get("/readiness")
+def downstream_readiness(request: Request, resolution: str, horizon: str,
+                         start: datetime, end: datetime):
+    """Fail-closed TL08 handoff until an approved horizon policy exists."""
+    if resolution not in ("30min", "daily", "weekly", "monthly", "seasonal", "yearly"):
+        raise HTTPException(422, "invalid resolution")
+    if horizon not in ("30min", "1h", "6h", "24h", "7d", "30d", "season", "cycle", "year"):
+        raise HTTPException(422, "invalid horizon")
+    if start.tzinfo is None or end.tzinfo is None or end <= start or end-start > timedelta(days=366):
+        raise HTTPException(422, "invalid time window")
+    with request.app.state.db.connection() as conn:
+        summary = conn.execute(
+            "SELECT count(*) AS observed_count,"
+            "count(*) FILTER (WHERE quality_status='valid' AND wave_height_m IS NOT NULL) AS valid_count,"
+            "count(*) FILTER (WHERE quality_status='unverified') AS unverified_count,"
+            "count(*) FILTER (WHERE quality_status='suspect') AS suspect_count,"
+            "count(*) FILTER (WHERE quality_status='rejected') AS rejected_count,"
+            "max(observed_at) AS latest_observed_at "
+            "FROM silver.wave_observations WHERE station_id='51201' AND observed_at>=%s AND observed_at<%s",
+            (start, end),
+        ).fetchone()
+        gold = conn.execute(
+            "SELECT count(*) AS periods,count(*) FILTER (WHERE readiness='GOLD_READY') AS descriptive_ready "
+            "FROM gold.resolution_metrics WHERE station_id='51201' AND resolution=%s AND period_start_at>=%s AND period_start_at<%s",
+            (resolution, start, end),
+        ).fetchone()
+    return {"station_id": "51201", "resolution": resolution, "horizon": horizon,
+            "start": start.isoformat(), "end": end.isoformat(),
+            "status": "INSUFFICIENT_DATA", "ml_ready": False,
+            "reasons": ["production_horizon_policy_unapproved", "model_validation_unavailable"],
+            "quality_counts": json_safe(summary), "gold_periods": json_safe(gold),
+            "auto_imputation_enabled": False}

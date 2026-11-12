@@ -69,6 +69,10 @@ The authenticated internal API now exposes Silver observation keyset
 pagination (`after`), measurement-hash-fenced QC updates, gap reconciliation,
 six-resolution Gold pagination, durable pipeline cycle claim/finish/status,
 and separate derived-imputation candidate storage/reconciliation. The
-corresponding additive SQL migrations are 04–07. Public Nginx routing does
+`/internal/v1/pipeline/readiness` handoff accepts station resolution, horizon
+and UTC interval, reports observed/QC and descriptive Gold counts, and fails
+closed for ML while a production horizon policy and validated model are absent.
+The
+corresponding additive SQL migrations are 04–08. Public Nginx routing does
 not expose `/internal/v1/*`; keep `INTERNAL_API_TOKEN` private.
 

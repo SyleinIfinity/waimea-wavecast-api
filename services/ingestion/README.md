@@ -26,6 +26,7 @@ and deployment status.
 - `POST /internal/v1/ingestion/backfill` ingests historical feeds.
 - `POST /internal/v1/ingestion/reconcile` rechecks recent feeds.
 - `POST /internal/v1/ingestion/replay` accepts a pinned raw GCS object path and generation for automatic or manual recovery. The scheduler records both in PostgreSQL when a downstream step fails.
+- `POST /internal/v1/ingestion/reconcile-orphans` scans at most 100 recent realtime GCS snapshots and replays at most three whose Source File registration or Raw row count is incomplete. The scheduler invokes it at startup and daily; it does not delete objects.
 
 The internal endpoints require `X-Internal-Token`. They are not published by
 Compose. Keep them off the public Nginx route. `pipeline-scheduler` owns the
@@ -51,3 +52,16 @@ docker compose run --rm --no-deps ingestion \
 Review the target environment and object identity before running replay.
 GCS and PostgreSQL do not share a transaction; replay is idempotent at the
 source file, raw row and Silver observation keys.
+
+## Historical backfill preparation
+
+`python -m services.ingestion.scripts.discover_history --max-files 28` audits
+listed NOAA station history archives without writing Cloud SQL or GCS. Its
+per-variable result is tracked as
+`docs/contributions/TL07-B_HISTORY_COVERAGE.json`. To plan at most one verified
+annual file, use `python -m services.ingestion.scripts.bounded_backfill
+--year 2025`; it prints `PLAN_ONLY`. `--execute` performs one bounded real
+ingest and is deliberately not scheduled. Check the manifest, row count,
+available Cloud SQL/GCS capacity and backup before executing. A rerun uses
+idempotent keys; use the returned pinned object generation for replay if a
+database stage fails. No historical bulk backfill was run during TL07-B.

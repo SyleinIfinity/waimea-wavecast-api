@@ -28,6 +28,7 @@ from packages.noaa.client import NOAAClient
 from services.ingestion.app.jobs.backfill import run_backfill
 from services.ingestion.app.jobs.poll import run_poll
 from services.ingestion.app.jobs.reconcile import run_reconcile
+from services.ingestion.app.jobs.orphans import reconcile_orphans
 from services.ingestion.app.services.ingest_pipeline import replay_stored_object
 
 logging.basicConfig(level=logging.INFO)
@@ -158,6 +159,19 @@ def create_app(settings: IngestionSettings | None = None, *, noaa_client=None,
                 "changed_from": result.changed_from.isoformat() if result.changed_from else None,
                 "changed_to": result.changed_to.isoformat() if result.changed_to else None,
                 "error": result.error}
+
+    @app.post("/internal/v1/ingestion/reconcile-orphans", dependencies=[Depends(internal_auth)])
+    def trigger_orphan_reconciliation():
+        if settings.ingestion_adapter_mode != "real":
+            raise HTTPException(503, "real GCS adapter required")
+        if not app.state.poll_lock.acquire(blocking=False):
+            raise HTTPException(409, "realtime feed already polling")
+        try:
+            return reconcile_orphans(gcs_client=app.state.gcs_client,
+                                     db_gateway=app.state.db_gateway,
+                                     bucket=app.state.bucket)
+        finally:
+            app.state.poll_lock.release()
 
 
     @app.post("/internal/v1/ingestion/reconcile", dependencies=[Depends(internal_auth)])

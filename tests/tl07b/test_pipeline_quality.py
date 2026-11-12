@@ -45,6 +45,8 @@ def test_gold_excludes_unverified_values_and_uses_full_period_coverage():
     assert daily["valid_sample_count"] == 1
     assert daily["unverified_count"] == 1
     assert daily["readiness"] == "INSUFFICIENT_DATA"
+    assert -1 <= daily["hour_sin"] <= 1
+    assert daily["calendar_season"] == "SON"
 
 
 def test_late_correction_rewrites_only_affected_and_rolling_successors():
@@ -68,3 +70,4 @@ def test_late_correction_rewrites_only_affected_and_rolling_successors():
     halfhours = [item for item in gateway.saved if item["resolution"] == "30min"]
     assert len(halfhours) == 3
     assert [item["mean_value"] for item in halfhours] == [2.0, 3.0, 4.0]
+    assert halfhours[0]["lag1_median_value"] == 1.0

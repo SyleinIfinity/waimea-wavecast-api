@@ -3,10 +3,25 @@ from __future__ import annotations
 
 from collections import defaultdict
 from datetime import date, datetime, timezone
+from math import sqrt
 from zoneinfo import ZoneInfo
 
 from packages.common.time import hst_day_bounds_utc
-from packages.ml.timeseries import RESOLUTIONS, _bounds, aggregate_resolution, trailing_statistics
+from packages.ml.timeseries import (RESOLUTIONS, _bounds, aggregate_resolution,
+                                    autocorrelation, cyclical_features, trailing_statistics)
+
+
+def _wave_period_correlation(members) -> float | None:
+    pairs = [(row.wave_height_m, row.dominant_period_s) for row in members
+             if row.quality_status == "valid" and row.wave_height_m is not None
+             and row.dominant_period_s is not None]
+    if len(pairs) < 3:
+        return None
+    xs, ys = zip(*pairs)
+    mx, my = sum(xs)/len(xs), sum(ys)/len(ys)
+    numerator = sum((x-mx)*(y-my) for x, y in pairs)
+    denominator = sqrt(sum((x-mx)**2 for x in xs)*sum((y-my)**2 for y in ys))
+    return max(-1.0, min(1.0, numerator/denominator)) if denominator else None
 
 
 def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
@@ -33,6 +48,13 @@ def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
         periods = aggregate_resolution(observations, resolution, cadence_minutes=30,
                                        minimum_coverage=minimum_coverage)
         periods = trailing_statistics(periods, window=3)
+        for index, item in enumerate(periods):
+            previous = periods[index-1] if index else None
+            contiguous = previous is not None and previous["period_end_hst"] == item["period_start_hst"]
+            item["lag1_median_value"] = previous["median"] if contiguous and previous["quality_status"] == "OBSERVED" else None
+            recent = [period["median"] if period["quality_status"] == "OBSERVED" else None
+                      for period in periods[max(0,index-47):index+1]]
+            item["autocorrelation_lag1"] = autocorrelation(recent, 1)
         if changed_from is not None and changed_to is not None:
             impacted = set()
             for index, item in enumerate(periods):
@@ -52,6 +74,7 @@ def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
             else:
                 readiness = "INSUFFICIENT_DATA"
             status_counts[readiness] += 1
+            signals = cyclical_features(datetime.fromisoformat(item["period_start_hst"]))
             output.append({
                 "station_id": "51201", "resolution": resolution,
                 "period_start_at": datetime.fromisoformat(item["period_start_hst"]).astimezone(timezone.utc),
@@ -68,6 +91,10 @@ def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
                 "variance_value": item["variance"], "stddev_value": item["stddev"],
                 "rolling_mean": item["rolling_mean"], "trend_per_period": item["trend_per_period"],
                 "residual_value": item["residual"], "calculation_version": "tl07b-v1",
+                "lag1_median_value": item["lag1_median_value"],
+                "autocorrelation_lag1": item["autocorrelation_lag1"],
+                "correlation_wvht_dpd": _wave_period_correlation(members),
+                **signals,
             })
         total += gateway.save_resolution_metrics(output)["saved"]
     return {"observations": len(observations), "saved": total, "readiness": dict(status_counts)}

@@ -36,6 +36,22 @@ def register_source_file(request: Request, body: SourceFileIn, idempotency_key: 
         raise HTTPException(422, str(exc)) from exc
 
 
+@router.get("/source-files/by-gcs")
+def source_file_by_gcs(request: Request, uri: str, generation: int):
+    if not uri.startswith("gs://waimea-noaa/noaa/raw/") or generation <= 0:
+        raise HTTPException(422, "invalid pinned raw object")
+    with connection(request) as conn:
+        row = conn.execute(
+            "SELECT f.file_id,f.source_row_count,"
+            "(SELECT count(*) FROM bronze.raw_observations r WHERE r.file_id=f.file_id) AS raw_count "
+            "FROM bronze.source_files f WHERE f.gcs_uri=%s AND f.gcs_generation=%s LIMIT 1",
+            (uri, str(generation)),
+        ).fetchone()
+    return {"found": row is not None, "file_id": row["file_id"] if row else None,
+            "source_row_count": row["source_row_count"] if row else None,
+            "raw_count": row["raw_count"] if row else None}
+
+
 @router.post("/raw-observations/bulk")
 def upsert_raw_batch(request: Request, body: RawBatch, idempotency_key: str | None = Header(default=None)):
     key_required(idempotency_key)

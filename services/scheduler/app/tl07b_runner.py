@@ -114,12 +114,44 @@ def run_once(now: datetime | None = None, client=None) -> dict:
             client.close()
 
 
+def reconcile_orphans_once(client=None) -> dict:
+    """Bounded startup/daily scan; propagate any recovered observations."""
+    token = os.environ["INTERNAL_API_TOKEN"]
+    db = os.environ.get("DATABASE_API_URL", "http://database-api:8000").rstrip("/")
+    ingestion = os.environ.get("INGESTION_WORKER_URL", "http://ingestion:8000").rstrip("/")
+    preprocessing = os.environ.get("PREPROCESSING_WORKER_URL", "http://preprocessing:8000").rstrip("/") + "/internal/v1/preprocessing"
+    owned = client is None
+    client = client or httpx.Client(timeout=180)
+    try:
+        result = _request(client, "POST", ingestion + "/internal/v1/ingestion/reconcile-orphans", token, {})
+        for item in result["repaired"]:
+            if not item["success"]:
+                raise RuntimeError("orphan replay failed")
+            if item.get("changed_from") and item.get("changed_to"):
+                _downstream(client, preprocessing, db + "/internal/v1/derived", token,
+                            _parse(item["changed_from"]), _parse(item["changed_to"]))
+        return result
+    finally:
+        if owned:
+            client.close()
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     if not os.environ.get("INTERNAL_API_TOKEN"):
         raise RuntimeError("INTERNAL_API_TOKEN required")
+    last_orphan_scan: float | None = None
     while True:
         started = time.monotonic()
+        if last_orphan_scan is None or started - last_orphan_scan >= 86400:
+            try:
+                result = reconcile_orphans_once()
+                logger.info("TL07-B bounded orphan scan: scanned=%s repaired=%s truncated=%s",
+                            result["scanned"], len(result["repaired"]), result["truncated"])
+                last_orphan_scan = time.monotonic()
+            except Exception:
+                logger.exception("TL07-B orphan scan failed; will retry")
+                last_orphan_scan = time.monotonic() - 86400 + 900
         try:
             logger.info("TL07-B tick result: %s", run_once())
         except Exception:

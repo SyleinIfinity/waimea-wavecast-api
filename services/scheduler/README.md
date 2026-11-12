@@ -10,6 +10,12 @@ inference workers outside TL07-B. Keep exactly one `pipeline-scheduler`
 container in normal operation. The database lease also fences accidental
 duplicate replicas.
 
+At startup and once per 24 hours, the scheduler asks Ingestion for a bounded
+scan of the current and previous UTC day of GCS raw snapshots. Unregistered
+or Raw-incomplete snapshots are replayed by pinned generation; new rows then
+pass QC and Gold. The scan reports truncation if more than 100 objects are
+listed and does not delete anything.
+
 Primary polls occur at minute 00 and 30. Missing expected source points get
 at most five one-minute retries, then four retries at slot+10/15/20/25.
 NOAA 429 responses persist `Retry-After` backoff across slots. A failed

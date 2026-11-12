@@ -141,3 +141,19 @@ class RealGCSClient:
             content_sha256=sha,
             size_bytes=blob.size or 0,
         )
+
+    def list_raw_objects(self, bucket: str, prefix: str, *, max_results: int = 100) -> list[GCSObjectInfo]:
+        """Bounded metadata listing for orphan reconciliation; never downloads data."""
+        if not prefix.startswith("noaa/raw/realtime/") or not 1 <= max_results <= 100:
+            raise ValueError("invalid raw prefix or listing budget")
+        result = []
+        for blob in self._client.list_blobs(bucket, prefix=prefix, max_results=max_results):
+            if not blob.name.endswith("-snapshot.txt") or blob.generation is None:
+                continue
+            result.append(GCSObjectInfo(
+                bucket=bucket, object_path=blob.name, gcs_uri=f"gs://{bucket}/{blob.name}",
+                generation=int(blob.generation),
+                content_sha256=(blob.metadata or {}).get("content_sha256", ""),
+                size_bytes=blob.size or 0,
+            ))
+        return result

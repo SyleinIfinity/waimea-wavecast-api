@@ -156,6 +156,10 @@ class HttpDatabaseGateway:
         return self._request("POST", "/internal/v1/silver/gaps/reconcile", body=body,
                              key=_key("gaps", body))
 
+    def source_file_by_gcs(self, uri: str, generation: int) -> dict:
+        return self._request("GET", "/internal/v1/source-files/by-gcs",
+                             params={"uri": uri, "generation": generation})
+
     def get_daily_features(self, station_id: str, start_hst: date, end_hst: date) -> list[DailyFeaturesDTO]:
         if station_id != "51201":
             raise ValueError("only station 51201 is supported")

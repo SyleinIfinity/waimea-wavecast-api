@@ -15,4 +15,7 @@ Endpoints (all writes require `X-Internal-Token`):
 Only `quality_status=valid` contributes to verified numerical aggregates.
 Gold `GOLD_READY` means a *descriptive period* has at least 90% source
 coverage and has closed. It does not approve that period for TL08 models.
+Gold also stores causal lag-one median, rolling autocorrelation, within-period
+WVHT/DPD correlation where at least three valid pairs exist, and Hawaii-local
+cyclical time features. Missing or weak correlations remain SQL NULL.
 The long-horizon, imputation and publication-delay policies remain unapproved.
