@@ -12,5 +12,5 @@ jobs:
         with:
           python-version: '3.13'
       - run: python -m compileall -q services shared tests
-      - run: pip install -e '.[dev]'
+      - run: pip install -e '.[dev,ml]'
       - run: pytest -q
