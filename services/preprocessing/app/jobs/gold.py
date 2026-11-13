@@ -7,6 +7,7 @@ from math import sqrt
 from zoneinfo import ZoneInfo
 
 from packages.common.time import hst_day_bounds_utc
+from packages.ml.data_quality import infer_cadence
 from packages.ml.timeseries import (RESOLUTIONS, _bounds, aggregate_resolution,
                                     autocorrelation, cyclical_features, trailing_statistics)
 
@@ -36,6 +37,8 @@ def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
     observations = gateway.get_observations("51201", start, end)
     if not observations:
         return {"observations": 0, "saved": 0}
+    evidence = infer_cadence(observations, min_intervals=200, min_support_ratio=0.55)
+    cadence_minutes = evidence.minutes if evidence and evidence.minutes in (30, 60) else 30
     grouped = {resolution: defaultdict(list) for resolution in RESOLUTIONS}
     for row in observations:
         local = row.observed_at.astimezone(ZoneInfo("Pacific/Honolulu"))
@@ -45,7 +48,7 @@ def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
     total = 0
     status_counts = defaultdict(int)
     for resolution in RESOLUTIONS:
-        periods = aggregate_resolution(observations, resolution, cadence_minutes=30,
+        periods = aggregate_resolution(observations, resolution, cadence_minutes=cadence_minutes,
                                        minimum_coverage=minimum_coverage)
         periods = trailing_statistics(periods, window=3)
         for index, item in enumerate(periods):
@@ -90,11 +93,13 @@ def rebuild_gold(gateway, *, year: int, now: datetime | None = None,
                 "min_value": item["min"], "max_value": item["max"],
                 "variance_value": item["variance"], "stddev_value": item["stddev"],
                 "rolling_mean": item["rolling_mean"], "trend_per_period": item["trend_per_period"],
-                "residual_value": item["residual"], "calculation_version": "tl07b-v1",
+                "residual_value": item["residual"], "calculation_version": "tl08a-cadence-v1",
                 "lag1_median_value": item["lag1_median_value"],
                 "autocorrelation_lag1": item["autocorrelation_lag1"],
                 "correlation_wvht_dpd": _wave_period_correlation(members),
                 **signals,
             })
         total += gateway.save_resolution_metrics(output)["saved"]
-    return {"observations": len(observations), "saved": total, "readiness": dict(status_counts)}
+    return {"observations": len(observations), "saved": total, "readiness": dict(status_counts),
+            "cadence_minutes": cadence_minutes,
+            "cadence_support_ratio": evidence.support_ratio if evidence else None}

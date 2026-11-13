@@ -185,13 +185,17 @@ def save_model_metadata(request: Request, body: ModelIn, idempotency_key: str | 
 def promote_model(request: Request, model_id: int, idempotency_key: str | None = Header(default=None)):
     key_required(idempotency_key)
     with connection(request) as conn:
-        model = conn.execute("SELECT model_id, task_type, status, artifact_generation, artifact_sha256 FROM gold.model_registry WHERE model_id=%s FOR UPDATE", (model_id,)).fetchone()
+        model = conn.execute("SELECT model_id, task_type, status, artifact_generation, artifact_sha256, "
+                             "evaluation_metrics FROM gold.model_registry WHERE model_id=%s FOR UPDATE", (model_id,)).fetchone()
         if model is None:
             raise HTTPException(404, "model not found")
         if model["status"] == "retired":
             raise HTTPException(409, "retired model cannot be promoted")
         if not model["artifact_generation"] or not model["artifact_sha256"]:
             raise HTTPException(422, "verified artifact generation and SHA-256 required")
+        gate = model["evaluation_metrics"] or {}
+        if gate.get("readiness") != "READY" or not gate.get("quality_gate_version"):
+            raise HTTPException(422, "explicit horizon quality gate required before promotion")
         stages = ("test", "validation", "train") if model["task_type"] == "clustering" else ("test",)
         evaluated = conn.execute("SELECT 1 FROM gold.model_evaluations e JOIN gold.training_runs t USING(training_run_id) WHERE e.model_id=%s AND e.evaluation_stage=ANY(%s) AND t.status='success' LIMIT 1", (model_id, list(stages))).fetchone()
         if not evaluated:

@@ -45,6 +45,14 @@ services:
     mem_limit: 256m
     cpus: 0.25
 
+  historical-backfill:
+    <<: *worker
+    profiles: [historical]
+    command: python -m services.ingestion.scripts.historical_backfill --max-files 1
+    restart: "no"
+    mem_limit: 1536m
+    cpus: 0.50
+
   analysis:
     <<: *worker
     build:

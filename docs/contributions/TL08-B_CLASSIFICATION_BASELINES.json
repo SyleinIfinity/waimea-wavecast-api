@@ -1,0 +1,69 @@
+{
+  "train_count": 3476,
+  "validation_count": 744,
+  "test_count": 745,
+  "train_only_thresholds_m": [
+    1.25,
+    1.79
+  ],
+  "train_majority_label": "medium",
+  "test_class_counts": {
+    "high": 210,
+    "medium": 247,
+    "low": 288
+  },
+  "majority": {
+    "sample_count": 745,
+    "accuracy": 0.3315436241610738,
+    "f1_macro": 0.16599462365591397,
+    "confusion_matrix": [
+      [
+        0,
+        288,
+        0
+      ],
+      [
+        0,
+        247,
+        0
+      ],
+      [
+        0,
+        210,
+        0
+      ]
+    ],
+    "labels": [
+      "low",
+      "medium",
+      "high"
+    ]
+  },
+  "persistence": {
+    "sample_count": 745,
+    "accuracy": 0.7167785234899329,
+    "f1_macro": 0.7143588972989172,
+    "confusion_matrix": [
+      [
+        228,
+        58,
+        2
+      ],
+      [
+        47,
+        150,
+        50
+      ],
+      [
+        12,
+        42,
+        156
+      ]
+    ],
+    "labels": [
+      "low",
+      "medium",
+      "high"
+    ]
+  }
+}

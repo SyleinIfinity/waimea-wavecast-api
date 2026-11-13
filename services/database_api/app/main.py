@@ -13,6 +13,7 @@ from services.database_api.app.api.admin import router as admin_router
 from services.database_api.app.api.internal import router as internal_router
 from services.database_api.app.api.pipeline import router as pipeline_router
 from services.database_api.app.api.derived import router as derived_router
+from services.database_api.app.api.datalake import router as datalake_router
 from services.database_api.app.api.public import router as public_router
 from services.database_api.app.config import Settings, get_settings
 from services.database_api.app.db.session import Database
@@ -48,6 +49,7 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
     app.include_router(internal_router)
     app.include_router(pipeline_router)
     app.include_router(derived_router)
+    app.include_router(datalake_router)
     app.include_router(admin_router)
 
     @app.middleware("http")

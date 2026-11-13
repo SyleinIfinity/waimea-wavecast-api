@@ -19,9 +19,11 @@ from training import train_classification, train_clustering, train_regression
 
 
 def train_suite(daily_rows: list[Any], store: ModelStore, gateway: Any, *, version: str,
-                synthetic_fixture: bool = False) -> dict:
+                synthetic_fixture: bool = False, source_versions: list[dict] | None = None) -> dict:
     if not version or "/" in version or ".." in version:
         raise ValueError("invalid dataset/model version")
+    if not synthetic_fixture and not source_versions:
+        raise ValueError("verified source dataset versions required for live training")
     samples = build_samples(daily_rows)
     train, validation, test = chronological_split(samples)
     snapshot = pd.DataFrame([{"anchor_date_hst": s.anchor_date_hst.isoformat(),
@@ -31,6 +33,13 @@ def train_suite(daily_rows: list[Any], store: ModelStore, gateway: Any, *, versi
     snapshot.to_parquet(buffer, index=False, engine="pyarrow")
     dataset_bytes = buffer.getvalue()
     dataset_hash = hashlib.sha256(dataset_bytes).hexdigest()
+    source_bytes = (json.dumps(source_versions or [], sort_keys=True, separators=(",", ":")) + "\n").encode()
+    source_hash = hashlib.sha256(source_bytes).hexdigest()
+    source_path = f"{TRAINING_DATASET_PREFIX}/wave-height/{version}/source-manifest-{source_hash}.json"
+    source_info = store.client.upload_if_absent(store.bucket, source_path, source_bytes, "application/json")
+    if source_info.content_sha256 != source_hash or hashlib.sha256(
+        store.client.download(store.bucket, source_path, source_info.generation)).hexdigest() != source_hash:
+        raise ValueError("source manifest round-trip mismatch")
     dataset_path = f"{TRAINING_DATASET_PREFIX}/wave-height/{version}/dataset.parquet"
     dataset_info = store.client.upload_if_absent(store.bucket, dataset_path,
                                                  dataset_bytes, "application/vnd.apache.parquet")
@@ -52,12 +61,16 @@ def train_suite(daily_rows: list[Any], store: ModelStore, gateway: Any, *, versi
         "train_sample_count": len(train), "validation_sample_count": len(validation), "test_sample_count": len(test),
         "dataset_gcs_uri": dataset_info.gcs_uri, "dataset_gcs_generation": str(dataset_info.generation),
         "dataset_sha256": dataset_hash}
+    split_body["preprocessing_parameters"]["source_manifest"] = {
+        "gcs_uri": source_info.gcs_uri, "gcs_generation": source_info.generation,
+        "sha256": source_hash}
     outcomes = {
         "regression": train_regression.train(train, validation, test),
         "classification": train_classification.train(train, validation, test),
         "clustering": train_clustering.train(train),
     }
-    result = {"dataset_sha256": dataset_hash, "synthetic_fixture": synthetic_fixture,
+    result = {"dataset_sha256": dataset_hash, "source_manifest_sha256": source_hash,
+              "synthetic_fixture": synthetic_fixture,
               "models": {}}
     for task, outcome in outcomes.items():
         task_split = {**split_body, "dataset_name": f"wave-height-{task}", "task_type": task,
@@ -76,6 +89,7 @@ def train_suite(daily_rows: list[Any], store: ModelStore, gateway: Any, *, versi
                     "target": "median WVHT HST T+1" if task != "clustering" else "daily HST cluster",
                     "target_unit": "m" if task != "clustering" else None,
                     "dataset_sha256": dataset_hash, "synthetic_fixture": synthetic_fixture, "scheme_id": scheme_id,
+                    "source_manifest_sha256": source_hash,
                     "feature_schema_sha256": feature_schema_sha, "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
                     "sklearn_version": sklearn.__version__, "numpy_version": np.__version__,
                     "training_code_version": "tl05-v1"}

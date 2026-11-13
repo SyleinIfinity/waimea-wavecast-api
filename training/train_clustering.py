@@ -21,7 +21,10 @@ def train(rows: list[Sample], *, seed: int = 42, max_k: int = 8) -> dict:
         transformed = model[:-1].transform(matrix(rows))
         if len(set(labels)) < 2:
             continue
-        score = silhouette_score(transformed, labels)
+        # Silhouette is quadratic; evaluate a deterministic bounded sample on
+        # the shared production VM while fitting centroids on all train rows.
+        score = silhouette_score(transformed, labels,
+                                 sample_size=min(1000, len(rows)), random_state=seed)
         if best is None or score > best["silhouette_score"]:
             best = {"model": model, "k": k, "silhouette_score": float(score),
                     "davies_bouldin_score": float(davies_bouldin_score(transformed, labels)),

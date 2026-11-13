@@ -53,15 +53,23 @@ Review the target environment and object identity before running replay.
 GCS and PostgreSQL do not share a transaction; replay is idempotent at the
 source file, raw row and Silver observation keys.
 
-## Historical backfill preparation
+## Historical backfill and data lake
 
 `python -m services.ingestion.scripts.discover_history --max-files 28` audits
-listed NOAA station history archives without writing Cloud SQL or GCS. Its
-per-variable result is tracked as
-`docs/contributions/TL07-B_HISTORY_COVERAGE.json`. To plan at most one verified
-annual file, use `python -m services.ingestion.scripts.bounded_backfill
---year 2025`; it prints `PLAN_ONLY`. `--execute` performs one bounded real
-ingest and is deliberately not scheduled. Check the manifest, row count,
-available Cloud SQL/GCS capacity and backup before executing. A rerun uses
-idempotent keys; use the returned pinned object generation for replay if a
-database stage fails. No historical bulk backfill was run during TL07-B.
+listed NOAA station history archives without writing Cloud SQL or GCS. The
+TL07-B discovery snapshot is `docs/contributions/TL07-B_HISTORY_COVERAGE.json`.
+The TL08-A `historical_backfill` runner checks the live station history
+page before importing, then processes one archive at a time in the bounded
+`historical-backfill` Compose profile. It persists source hashes, per-batch
+checkpoints, a lease and GCS export progress in PostgreSQL. A retry resumes
+from a committed Silver batch offset for the same source hash. QC and HST
+Daily/Gold are rebuilt before Bronze, Silver and Gold month exports become
+`VERIFIED`. See `docs/deployment.md` for commands and the daily systemd timer.
+`publish_history_manifest --all --repair` verifies the active monthly
+exports against PostgreSQL and GCS, repairs missing versions, and publishes
+immutable yearly manifests under `manifests/station=51201/historical/`.
+The production timer runs `scheduled_history_reconcile`, which also retries
+pending year manifests and publishes a versioned full coverage report. Its
+state is durable in `gold.history_publications` and queryable through the
+private Database API. Manual `historical_backfill` remains available for a
+targeted archive; run the scheduled reconciler afterward to finalize it.

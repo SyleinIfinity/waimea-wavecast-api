@@ -1,0 +1,186 @@
+{
+  "30d": [
+    {
+      "fold": 1,
+      "horizon_days": 30,
+      "model": {
+        "mae": 0.1293401726455923,
+        "r2_score": 0.8458933181770539,
+        "rmse": 0.17175615562774507,
+        "sample_count": 610
+      },
+      "persistence": {
+        "mae": 0.3476401868900314,
+        "r2_score": -0.3294253088368202,
+        "rmse": 0.504467912326335,
+        "sample_count": 610
+      },
+      "skill_vs_persistence": 0.6279481558140276,
+      "test_count": 610,
+      "test_end_hst": "2021-10-13",
+      "test_start_hst": "2019-02-02",
+      "train_count": 1597,
+      "train_end_hst": "2015-06-13",
+      "train_mean": {
+        "mae": 0.435867342301352,
+        "r2_score": -0.24088088305775224,
+        "rmse": 0.487378787365247,
+        "sample_count": 610
+      },
+      "validation_count": 586,
+      "validation_end_hst": "2019-01-01"
+    },
+    {
+      "fold": 2,
+      "horizon_days": 30,
+      "model": {
+        "mae": 0.13244264202565645,
+        "r2_score": 0.8893008294587212,
+        "rmse": 0.17116554525913633,
+        "sample_count": 610
+      },
+      "persistence": {
+        "mae": 0.43661725782958116,
+        "r2_score": -0.35222120181866146,
+        "rmse": 0.5982297890253852,
+        "sample_count": 610
+      },
+      "skill_vs_persistence": 0.6966619169291952,
+      "test_count": 610,
+      "test_end_hst": "2024-04-30",
+      "test_start_hst": "2021-10-14",
+      "train_count": 2213,
+      "train_end_hst": "2019-01-01",
+      "train_mean": {
+        "mae": 0.4363504590612862,
+        "r2_score": -0.0029232591696266574,
+        "rmse": 0.5152025645625399,
+        "sample_count": 610
+      },
+      "validation_count": 580,
+      "validation_end_hst": "2021-09-13"
+    },
+    {
+      "fold": 3,
+      "horizon_days": 30,
+      "model": {
+        "mae": 0.11403822399436504,
+        "r2_score": 0.8995173405148849,
+        "rmse": 0.1437657822835846,
+        "sample_count": 610
+      },
+      "persistence": {
+        "mae": 0.35510738549863763,
+        "r2_score": -0.1537610599780519,
+        "rmse": 0.48715583630288783,
+        "sample_count": 610
+      },
+      "skill_vs_persistence": 0.6788627084332985,
+      "test_count": 610,
+      "test_end_hst": "2026-10-15",
+      "test_start_hst": "2024-05-01",
+      "train_count": 2817,
+      "train_end_hst": "2021-09-13",
+      "train_mean": {
+        "mae": 0.4189665273446794,
+        "r2_score": -0.040244874172242984,
+        "rmse": 0.4625703199543495,
+        "sample_count": 610
+      },
+      "validation_count": 588,
+      "validation_end_hst": "2024-03-31"
+    }
+  ],
+  "7d": [
+    {
+      "fold": 1,
+      "horizon_days": 7,
+      "model": {
+        "mae": 0.39257980636237894,
+        "r2_score": 0.45976627192580233,
+        "rmse": 0.5484593330979433,
+        "sample_count": 723
+      },
+      "persistence": {
+        "mae": 0.5554495159059475,
+        "r2_score": -0.07647490202428187,
+        "rmse": 0.774204227151251,
+        "sample_count": 723
+      },
+      "skill_vs_persistence": 0.29322144475709067,
+      "test_count": 723,
+      "test_end_hst": "2021-08-21",
+      "test_start_hst": "2017-11-06",
+      "train_count": 1922,
+      "train_end_hst": "2015-01-10",
+      "train_mean": {
+        "mae": 0.5848956790629862,
+        "r2_score": -0.0010125387657315965,
+        "rmse": 0.7465748275779867,
+        "sample_count": 723
+      },
+      "validation_count": 718,
+      "validation_end_hst": "2017-10-24"
+    },
+    {
+      "fold": 2,
+      "horizon_days": 7,
+      "model": {
+        "mae": 0.4634466113416321,
+        "r2_score": 0.3262198729852488,
+        "rmse": 0.6176591043143961,
+        "sample_count": 723
+      },
+      "persistence": {
+        "mae": 0.602807745504841,
+        "r2_score": -0.28662173424401094,
+        "rmse": 0.8535229247805032,
+        "sample_count": 723
+      },
+      "skill_vs_persistence": 0.2311867012367207,
+      "test_count": 723,
+      "test_end_hst": "2024-04-06",
+      "test_start_hst": "2021-08-22",
+      "train_count": 2647,
+      "train_end_hst": "2017-10-24",
+      "train_mean": {
+        "mae": 0.5719140539068994,
+        "r2_score": -7.794743098177292e-05,
+        "rmse": 0.752500294126012,
+        "sample_count": 723
+      },
+      "validation_count": 716,
+      "validation_end_hst": "2021-08-14"
+    },
+    {
+      "fold": 3,
+      "horizon_days": 7,
+      "model": {
+        "mae": 0.3757920470262794,
+        "r2_score": 0.41670182335114503,
+        "rmse": 0.5041896011255347,
+        "sample_count": 723
+      },
+      "persistence": {
+        "mae": 0.5052420470262794,
+        "r2_score": -0.1822372689277172,
+        "rmse": 0.7177957749600398,
+        "sample_count": 723
+      },
+      "skill_vs_persistence": 0.2562138301075858,
+      "test_count": 723,
+      "test_end_hst": "2026-11-04",
+      "test_start_hst": "2024-04-07",
+      "train_count": 3368,
+      "train_end_hst": "2021-08-14",
+      "train_mean": {
+        "mae": 0.5250362146539064,
+        "r2_score": -0.019791393291255233,
+        "rmse": 0.6666597665282806,
+        "sample_count": 723
+      },
+      "validation_count": 716,
+      "validation_end_hst": "2024-03-30"
+    }
+  ]
+}

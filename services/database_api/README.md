@@ -63,6 +63,20 @@ and health routes; keep `/internal/v1` on the private service network.
 The container receives the same `GCS_*` bucket settings as the workers, but the
 Database API does not itself read or write GCS objects. GCS connectivity is
 verified from inside this container with the real `RealGCSClient` and VM ADC.
+
+The authenticated `/internal/v1/datalake` routes provide bounded Bronze,
+Silver and Gold reads; persistent historical source jobs with lease heartbeat
+and checkpoints; versioned export prepare/complete/active operations; and
+read-only monthly coverage. The API stores export state but the bounded
+historical worker performs pinned GCS upload/download verification before
+calling `complete`. Migration `09_tl08a_exports.sql` adds the job and export
+tables. These internal routes must remain off public Nginx.
+Migration `10_tl08a_publications.sql` adds durable yearly publication state.
+`GET /internal/v1/datalake/publications/pending` gives the worker at most two
+years to finish; `GET /internal/v1/datalake/publications` exposes status and
+pinned manifest/coverage generations to internal operators. The `complete`
+route requires the pending row's timestamp so a source correction arriving
+during publication cannot be marked complete by an older result.
 # TL07-B internal contracts
 
 The authenticated internal API now exposes Silver observation keyset

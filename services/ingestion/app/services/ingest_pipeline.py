@@ -14,7 +14,7 @@ import logging
 from dataclasses import dataclass
 from datetime import date, datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Literal
+from typing import Callable, Literal
 
 from packages.db.gateway import (
     DatabaseGateway,
@@ -56,6 +56,10 @@ class IngestResult:
     success: bool = False
     error: str | None = None
     latest_observed_at: datetime | None = None
+    earliest_observed_at: datetime | None = None
+    source_sha256: str | None = None
+    source_row_count: int = 0
+    affected_months: tuple[str, ...] = ()
     changed_from: datetime | None = None
     changed_to: datetime | None = None
     retry_after_seconds: int | None = None
@@ -133,6 +137,9 @@ def run_ingest(
     bucket: str = "waimea-noaa",
     replay_object_path: str | None = None,
     replay_generation: int | None = None,
+    checkpoint: Callable[[dict], None] | None = None,
+    source_bytes: bytes | None = None,
+    resume_offset: int = 0,
 ) -> IngestResult:
     """
     Execute the full ingestion SAGA for one (feed_key, year[, month]) period.
@@ -176,6 +183,8 @@ def run_ingest(
         except Exception as exc:
             result.error = f"GCS replay download failed: {type(exc).__name__}"
             return result
+    elif source_bytes is not None:
+        raw_bytes = source_bytes
     else:
         try:
             raw_bytes = noaa_client.download(url)
@@ -211,8 +220,12 @@ def run_ingest(
         result.error = "NOAA payload contained no valid observations"
         return result
     result.latest_observed_at = max(row.observed_at for row in parse_result.rows)
+    result.earliest_observed_at = min(row.observed_at for row in parse_result.rows)
+    result.source_row_count = len(parse_result.rows)
+    result.affected_months = tuple(sorted({row.observed_at.strftime("%Y-%m") for row in parse_result.rows}))
 
     fhash = file_sha256(raw_bytes)
+    result.source_sha256 = fhash
     if obj_info is not None and obj_info.content_sha256 and obj_info.content_sha256 != fhash:
         result.error = "GCS replay object checksum mismatch"
         return result
@@ -235,6 +248,10 @@ def run_ingest(
             return result
     result.gcs_uri = obj_info.gcs_uri
     result.gcs_generation = obj_info.generation
+    if checkpoint is not None:
+        checkpoint({"status": "RAW_STORED", "source_sha256": fhash,
+                    "source_row_count": len(parse_result.rows), "gcs_uri": result.gcs_uri,
+                    "gcs_generation": result.gcs_generation})
 
     # --- Step 4: Register source file in DB ---
     if parse_result.parse_error_count > 0:
@@ -285,8 +302,12 @@ def run_ingest(
     # --- Steps 5 & 6: Upsert raw + silver in batches ---
     batch_size = 500
     rows = parse_result.rows
+    if resume_offset < 0 or resume_offset > len(rows):
+        raise ValueError("invalid historical resume offset")
     for i in range(0, len(rows), batch_size):
         batch = rows[i : i + batch_size]
+        if i + len(batch) <= resume_offset:
+            continue
 
         # Raw batch
         raw_dtos = [
@@ -340,6 +361,8 @@ def run_ingest(
             logger.error("DB upsert_silver_batch failed at offset %d: %s", i, exc)
             result.error = f"Silver upsert failed: {exc}"
             return result
+        if checkpoint is not None:
+            checkpoint({"status": "SILVER_APPLIED", "last_batch_offset": i + len(batch)})
 
     result.success = True
     logger.info(
