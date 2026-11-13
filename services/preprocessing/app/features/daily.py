@@ -79,13 +79,14 @@ def compute_daily_features(
         DailyFeaturesDTO ready for upsert.
     """
     sample_count = len(observations)
-    wave_heights = [o.wave_height_m for o in observations if o.wave_height_m is not None]
+    approved = [o for o in observations if o.quality_status == "valid"]
+    wave_heights = [o.wave_height_m for o in approved if o.wave_height_m is not None]
     valid_wave_count = len(wave_heights)
 
     # Coverage ratio: only compute when expected is known
     coverage_ratio: float | None = None
     if expected_sample_count is not None and expected_sample_count > 0:
-        coverage_ratio = valid_wave_count / expected_sample_count
+        coverage_ratio = min(1.0, valid_wave_count / expected_sample_count)
 
     # Wave height statistics
     mean_wave = statistics.mean(wave_heights) if wave_heights else None
@@ -96,24 +97,24 @@ def compute_daily_features(
     stddev_wave = statistics.stdev(wave_heights) if len(wave_heights) >= 2 else None
 
     # Dominant period
-    periods = [o.dominant_period_s for o in observations if o.dominant_period_s is not None]
+    periods = [o.dominant_period_s for o in approved if o.dominant_period_s is not None]
     mean_period = statistics.mean(periods) if periods else None
 
     # Circular mean wave direction (MWD)
-    directions = [o.mean_wave_direction_deg for o in observations]
+    directions = [o.mean_wave_direction_deg for o in approved]
     circ_dir = _circular_mean(directions)
 
     # Sea surface temperature
-    sst_values = [o.sea_surface_temp_c for o in observations if o.sea_surface_temp_c is not None]
+    sst_values = [o.sea_surface_temp_c for o in approved if o.sea_surface_temp_c is not None]
     mean_sst = statistics.mean(sst_values) if sst_values else None
 
     # Max wind speed
-    winds = [o.wind_speed_ms for o in observations if o.wind_speed_ms is not None]
+    winds = [o.wind_speed_ms for o in approved if o.wind_speed_ms is not None]
     max_wind = max(winds) if winds else None
 
     # Good quality count
     good_quality_count = sum(
-        1 for o in observations if o.quality_status in ("valid", "unverified")
+        1 for o in observations if o.quality_status == "valid"
     )
 
     return DailyFeaturesDTO(
@@ -134,6 +135,10 @@ def compute_daily_features(
         mean_sea_surface_temp_c=mean_sst,
         max_wind_speed_ms=max_wind,
         good_quality_count=good_quality_count,
+        missing_count=max(0, expected_sample_count - sample_count) if expected_sample_count is not None else 0,
+        suspect_count=sum(o.quality_status == "suspect" for o in observations),
+        rejected_count=sum(o.quality_status == "rejected" for o in observations),
+        unverified_count=sum(o.quality_status == "unverified" for o in observations),
         calculation_version=CALCULATION_VERSION,
     )
 

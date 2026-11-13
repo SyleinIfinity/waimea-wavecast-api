@@ -28,7 +28,7 @@ from typing import Any, Protocol, runtime_checkable
 @dataclass
 class SourceFileDTO:
     station_id: str
-    feed_id: int
+    feed_id: int | None
     feed_key: str                 # 'historical_annual' | 'historical_monthly' | 'realtime'
     original_filename: str
     source_url: str
@@ -42,6 +42,13 @@ class SourceFileDTO:
     source_period_end: date | None = None
     parse_status: str = "pending"  # pending | parsed | partial | failed
     columns_in_source: list[str] = field(default_factory=list)
+    gcs_bucket: str | None = None
+    gcs_object_name: str | None = None
+    gcs_upload_status: str = "verified"
+    parser_version: str | None = None
+    source_row_count: int | None = None
+    parse_error_count: int = 0
+    parsed_at: datetime | None = None
 
 
 @dataclass
@@ -105,6 +112,10 @@ class DailyFeaturesDTO:
     max_wind_speed_ms: float | None
     good_quality_count: int = 0
     calculation_version: str = "v1"
+    missing_count: int = 0
+    suspect_count: int = 0
+    rejected_count: int = 0
+    unverified_count: int = 0
 
 
 @dataclass

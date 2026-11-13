@@ -6,7 +6,7 @@ from pydantic import Field
 from services.database_api.app.schemas.common import APIModel
 
 
-GoldTable = Literal["time_series_metrics", "trend_seasonal_components", "correlations", "cluster_assignments", "predictions", "classifications"]
+GoldTable = Literal["time_series_metrics", "resolution_metrics", "trend_seasonal_components", "correlations", "cluster_assignments", "predictions", "classifications"]
 
 
 class GoldBatch(APIModel):

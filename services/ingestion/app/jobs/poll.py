@@ -66,7 +66,7 @@ def run_poll(
         bucket=bucket,
     )
 
-    is_empty = result.silver_inserted == 0 and result.silver_revised == 0
+    is_empty = result.success and result.silver_inserted == 0 and result.silver_revised == 0
 
     if is_empty and result.success:
         logger.info("Poll at %s: no new data (0 inserted/revised) — OK", now.isoformat())

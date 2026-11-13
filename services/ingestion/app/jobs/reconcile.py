@@ -78,6 +78,7 @@ def run_reconcile(
         report.results.append(result)
         report.months_checked += 1
         if result.silver_revised > 0:
+            report.corrections_detected += result.silver_revised
             report.corrections_applied += result.silver_revised
             logger.info(
                 "Reconcile: %d revision(s) applied for %d-%02d", result.silver_revised, y, m

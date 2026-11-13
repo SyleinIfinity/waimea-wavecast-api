@@ -16,7 +16,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-waimea_wavecast}
       POSTGRES_USER: ${POSTGRES_USER:-waimea}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-only-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-}
     volumes:
       - postgres_dev:/var/lib/postgresql/data
     ports:
@@ -36,6 +36,22 @@ services:
   preprocessing:
     <<: *worker
     command: uvicorn services.preprocessing.app.main:app --host 0.0.0.0 --port 8000
+    mem_limit: 768m
+    cpus: 0.75
+
+  pipeline-scheduler:
+    <<: *worker
+    command: python -m services.scheduler.app.tl07b_runner
+    mem_limit: 256m
+    cpus: 0.25
+
+  historical-backfill:
+    <<: *worker
+    profiles: [historical]
+    command: python -m services.ingestion.scripts.historical_backfill --max-files 1
+    restart: "no"
+    mem_limit: 1536m
+    cpus: 0.50
 
   analysis:
     <<: *worker

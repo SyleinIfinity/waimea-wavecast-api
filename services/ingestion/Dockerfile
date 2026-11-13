@@ -6,8 +6,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir "fastapi>=0.115,<1" "uvicorn[standard]>=0.30,<1" \
-    "requests>=2.32,<3" "pydantic>=2,<3" "google-cloud-storage>=2.18,<4"
+RUN pip install --no-cache-dir .
 
 # Copy shared packages and service code
 COPY packages/ ./packages/

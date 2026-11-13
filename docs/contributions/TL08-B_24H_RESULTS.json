@@ -1,0 +1,31 @@
+[
+  {
+    "horizon": "24h",
+    "model_id": 16,
+    "sample_count": 12432,
+    "train": 8648,
+    "validation": 1809,
+    "test": 1883,
+    "dataset_sha256": "fb1eaac07bf0611b431be4d44b1167ef8ac8207576fd073470cb15d0d8701bca",
+    "source_manifest_sha256": "2783dde516d02d1961b286c60a97e817618006f2d2224105b9d5304180f8d08e",
+    "model": {
+      "sample_count": 1883,
+      "mae": 0.4237336165693043,
+      "rmse": 0.5680431407195533,
+      "r2_score": 0.05353410315009288
+    },
+    "persistence": {
+      "sample_count": 1883,
+      "mae": 0.3655337227827934,
+      "rmse": 0.5090002488399898,
+      "r2_score": 0.2400617238063255
+    },
+    "train_mean": {
+      "sample_count": 1883,
+      "mae": 0.4560783696622441,
+      "rmse": 0.5860504865669366,
+      "r2_score": -0.007424229378541147
+    },
+    "readiness": "NOT_READY"
+  }
+]

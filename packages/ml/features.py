@@ -34,11 +34,18 @@ def _day(row: Any) -> date:
 
 def build_samples(rows: Iterable[Any], *, require_target: bool = True) -> list[Sample]:
     """Use only dates <= anchor for X; never bridge missing calendar days."""
+    def observed_only(row: Any) -> bool:
+        if row is None:
+            return False
+        source = _get(row, "source_type") if (isinstance(row, dict) and "source_type" in row) or hasattr(row, "source_type") else "OBSERVED"
+        imputed_count = _get(row, "imputed_count") if (isinstance(row, dict) and "imputed_count" in row) or hasattr(row, "imputed_count") else 0
+        return source == "OBSERVED" and not imputed_count
+
     days = {_day(row): row for row in rows}
     samples: list[Sample] = []
     for anchor in sorted(days):
         history = [days.get(anchor - timedelta(days=lag)) for lag in range(7)]
-        if any(row is None or _get(row, "median_wave_height_m") is None for row in history):
+        if any(not observed_only(row) or _get(row, "median_wave_height_m") is None for row in history):
             continue
         cutoff = datetime.combine(anchor + timedelta(days=1), time(hour=2),
                                   ZoneInfo("Pacific/Honolulu")).astimezone(timezone.utc)
@@ -50,7 +57,7 @@ def build_samples(rows: Iterable[Any], *, require_target: bool = True) -> list[S
                     raise ValueError("feature source updated after prediction cutoff")
         target_day = anchor + timedelta(days=1)
         target_row = days.get(target_day)
-        target = None if target_row is None else _get(target_row, "median_wave_height_m")
+        target = None if not observed_only(target_row) else _get(target_row, "median_wave_height_m")
         if require_target and target is None:
             continue
         direction = _get(history[0], "circular_mean_direction_deg")

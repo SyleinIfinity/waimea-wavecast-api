@@ -12,6 +12,9 @@ development, copy the root `.env.example` to the root `.env` and fill in the DB 
 `services/database_api/app/config.py` loads that file automatically. Deployment can pass the same
 variables through a protected host secret store. Keep
 `DB_PASSWORD`, `INTERNAL_API_TOKEN`, and `ADMIN_API_TOKEN` out of Git.
+For production, set `DB_HOST=dbwaimea.liems.io.vn`, `DB_PORT=5432`, the
+database name and user, and `DB_SSLMODE=require`. The service reads these
+settings directly; workers continue to use `DATABASE_API_URL` for internal HTTP.
 
 ```sh
 python -m pip install -e ".[dev]"
@@ -49,8 +52,41 @@ TL04/TL05 worker URLs and returns `202` when the workers accept the jobs.
 It requires those worker services to exist; this service does not synthesize
 their results. No training is requested by rebuild.
 
-The API's OpenAPI schema is at `/openapi.json`; `/docs` is disabled in
+The API's OpenAPI schema is at `/openapi.json` outside production. In production,
+Swagger UI is at `/private/docs` and its schema at `/private/openapi.json`;
+Nginx restricts both to VM loopback plus HTTP Basic Auth, for SSH tunnel access.
+The default `/docs` remains disabled in
 production. `/health/live` checks only this process, while `/health/ready`
 checks PostgreSQL with `SELECT 1`. Configure Nginx to expose only `/api/v1`
 and health routes; keep `/internal/v1` on the private service network.
 `contracts/examples.json` contains mock and empty responses for TL02–TL05.
+The container receives the same `GCS_*` bucket settings as the workers, but the
+Database API does not itself read or write GCS objects. GCS connectivity is
+verified from inside this container with the real `RealGCSClient` and VM ADC.
+
+The authenticated `/internal/v1/datalake` routes provide bounded Bronze,
+Silver and Gold reads; persistent historical source jobs with lease heartbeat
+and checkpoints; versioned export prepare/complete/active operations; and
+read-only monthly coverage. The API stores export state but the bounded
+historical worker performs pinned GCS upload/download verification before
+calling `complete`. Migration `09_tl08a_exports.sql` adds the job and export
+tables. These internal routes must remain off public Nginx.
+Migration `10_tl08a_publications.sql` adds durable yearly publication state.
+`GET /internal/v1/datalake/publications/pending` gives the worker at most two
+years to finish; `GET /internal/v1/datalake/publications` exposes status and
+pinned manifest/coverage generations to internal operators. The `complete`
+route requires the pending row's timestamp so a source correction arriving
+during publication cannot be marked complete by an older result.
+# TL07-B internal contracts
+
+The authenticated internal API now exposes Silver observation keyset
+pagination (`after`), measurement-hash-fenced QC updates, gap reconciliation,
+six-resolution Gold pagination, durable pipeline cycle claim/finish/status,
+and separate derived-imputation candidate storage/reconciliation. The
+`/internal/v1/pipeline/readiness` handoff accepts station resolution, horizon
+and UTC interval, reports observed/QC and descriptive Gold counts, and fails
+closed for ML while a production horizon policy and validated model are absent.
+The
+corresponding additive SQL migrations are 04–08. Public Nginx routing does
+not expose `/internal/v1/*`; keep `INTERNAL_API_TOKEN` private.
+

@@ -25,6 +25,8 @@ class FakeResult:
 
 class FakeConnection:
     def execute(self, query, params=None):
+        if isinstance(query, str) and query.startswith("SELECT raw_id"):
+            return FakeResult({"raw_id": 1})
         return FakeResult()
 
 
@@ -54,13 +56,22 @@ def test_health_and_empty_public_response(client):
     assert response.json() == {"status": "empty", "data_type": "observation", "data": None}
 
 
+def test_production_swagger_uses_private_paths(client):
+    assert client.get("/docs").status_code == 404
+    assert client.get("/openapi.json").status_code == 404
+    page = client.get("/private/docs")
+    assert page.status_code == 200
+    assert "/private/openapi.json" in page.text
+    assert client.get("/private/openapi.json").status_code == 200
+
+
 def test_internal_requires_token_and_idempotency(client):
     payload = {"file_id": 1, "rows": [{"row_sha256": "a" * 64, "raw_line": "test"}]}
     assert client.post("/internal/v1/raw-observations/bulk", json=payload).status_code == 401
     assert client.post("/internal/v1/raw-observations/bulk", json=payload, headers={"X-Internal-Token": "internal-test"}).status_code == 422
     accepted = client.post("/internal/v1/raw-observations/bulk", json=payload, headers={"X-Internal-Token": "internal-test", "Idempotency-Key": "raw-test"})
     assert accepted.status_code == 200
-    assert accepted.json() == {"inserted": 0, "duplicate": 1}
+    assert accepted.json() == {"inserted": 0, "duplicate": 1, "raw_ids": {"a" * 64: 1}}
 
 
 def test_production_delete_is_blocked(client):
@@ -75,6 +86,20 @@ def test_admin_cors_preflight_for_frontend(client):
     )
     assert response.status_code == 200
     assert response.headers["access-control-allow-origin"] == "http://localhost:5173"
+
+
+def test_cors_accepts_local_and_production_origins_only():
+    settings = Settings(app_env="production", public_origin="https://waimea.liems.io.vn",
+                        allowed_origins="https://waimea.liems.io.vn,http://localhost:5173")
+    with TestClient(create_app(settings, FakeDB())) as app_client:
+        for origin in ("http://localhost:5173", "https://waimea.liems.io.vn"):
+            response = app_client.options("/api/v1/observations/latest", headers={
+                "Origin": origin, "Access-Control-Request-Method": "GET"})
+            assert response.status_code == 200
+            assert response.headers["access-control-allow-origin"] == origin
+        denied = app_client.options("/api/v1/observations/latest", headers={
+            "Origin": "https://untrusted.example", "Access-Control-Request-Method": "GET"})
+        assert denied.status_code == 400
 
 
 def test_bad_time_window_and_bad_metric(client):

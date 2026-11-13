@@ -64,6 +64,7 @@ def daily_fixture(count=130):
 def observations(count=30):
     first = datetime(2025, 1, 1, 12, tzinfo=timezone.utc)
     return [{"observed_at": (first + timedelta(days=i)).isoformat(), "wave_height_m": 1 + i / 10,
+             "quality_status": "valid",
              "dominant_period_s": 8 + i / 20, "sea_surface_temp_c": 24 + i / 30,
              "wind_speed_ms": 4 + i / 15, "mean_wave_direction_deg": 359 if i % 2 else 1} for i in range(count)]
 
@@ -105,7 +106,8 @@ def test_complete_monthly_seasonality():
     for i in range(30):
         year, month = divmod(2023 * 12 + i, 12)
         rows.append({"observed_at": datetime(year, month + 1, 10, 12, tzinfo=timezone.utc).isoformat(),
-                     "wave_height_m": 1.5 + .4 * sin(i / 2), "dominant_period_s": 9.0})
+                         "wave_height_m": 1.5 + .4 * sin(i / 2), "dominant_period_s": 9.0,
+                         "quality_status": "valid"})
     fake = FakeMLGateway(observations=rows)
     result = run_analysis(fake, "trend_seasonal_components", date(2025, 6, 1), date(2025, 6, 30), "season-test")
     assert result["saved"] == 1

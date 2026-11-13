@@ -20,6 +20,8 @@ from __future__ import annotations
 import logging
 import random
 import time
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from dataclasses import dataclass, field
 
 import requests
@@ -50,6 +52,7 @@ class NOAAClient:
     max_backoff_s: float = 60.0
     user_agent: str = "WaimeaWaveCast/1.0 (educational; contact: team@example.com)"
     _session: requests.Session = field(default_factory=requests.Session, init=False, repr=False)
+    _cache: dict[str, tuple[str | None, str | None, bytes]] = field(default_factory=dict, init=False, repr=False)
 
     def __post_init__(self) -> None:
         self._session.headers["User-Agent"] = self.user_agent
@@ -63,24 +66,36 @@ class NOAAClient:
             requests.RequestException: After all retries exhausted.
         """
         last_exc: Exception | None = None
+        retry_after = 0.0
 
         for attempt in range(self.max_retries + 1):
             if attempt > 0:
-                delay = min(
+                delay = max(retry_after, min(
                     self.backoff_base_s * (2 ** (attempt - 1)) + random.uniform(0, 1),
                     self.max_backoff_s,
-                )
+                ))
                 logger.info("Retry %d/%d for %s after %.1fs", attempt, self.max_retries, url, delay)
                 time.sleep(delay)
 
             try:
-                resp = self._session.get(url, timeout=self.timeout_s, stream=True)
+                cached = self._cache.get(url)
+                headers = {}
+                if cached and cached[0]:
+                    headers["If-None-Match"] = cached[0]
+                elif cached and cached[1]:
+                    headers["If-Modified-Since"] = cached[1]
+                resp = self._session.get(url, timeout=self.timeout_s, stream=True, headers=headers)
             except requests.RequestException as exc:
                 logger.warning("HTTP error on attempt %d for %s: %s", attempt + 1, url, exc)
                 last_exc = exc
                 continue
 
+            if resp.status_code == 304 and cached is not None:
+                resp.close()
+                return cached[2]
+
             if resp.status_code == 404:
+                resp.close()
                 raise SourceUnavailableError(url, http_status=404)
 
             if resp.status_code in _RETRIABLE_STATUSES:
@@ -89,6 +104,18 @@ class NOAAClient:
                     resp.status_code, attempt + 1, url,
                 )
                 last_exc = requests.HTTPError(response=resp)
+                retry_after = 0.0
+                if resp.status_code == 429 and resp.headers.get("Retry-After"):
+                    value = resp.headers["Retry-After"]
+                    try:
+                        retry_after = float(value)
+                    except ValueError:
+                        try:
+                            retry_after = (parsedate_to_datetime(value) - datetime.now(timezone.utc)).total_seconds()
+                        except (TypeError, ValueError):
+                            retry_after = 0.0
+                    retry_after = min(self.max_backoff_s, max(0.0, retry_after))
+                resp.close()
                 continue
 
             if not resp.ok:
@@ -108,6 +135,10 @@ class NOAAClient:
                 chunks.append(chunk)
 
             logger.info("Downloaded %d bytes from %s", total, url)
-            return b"".join(chunks)
+            payload = b"".join(chunks)
+            if resp.headers.get("ETag") or resp.headers.get("Last-Modified"):
+                self._cache[url] = (resp.headers.get("ETag"), resp.headers.get("Last-Modified"), payload)
+            resp.close()
+            return payload
 
         raise last_exc or RuntimeError(f"Failed to download {url} after {self.max_retries + 1} attempts")

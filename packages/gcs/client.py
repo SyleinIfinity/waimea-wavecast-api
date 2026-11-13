@@ -57,12 +57,17 @@ class RealGCSClient:
     """
     Production GCS client backed by google-cloud-storage.
 
-    Requires GOOGLE_APPLICATION_CREDENTIALS or Workload Identity.
+    Uses Application Default Credentials. On Compute Engine, these come from
+    the service account attached to the VM; no key file is needed.
     """
 
     def __init__(self) -> None:
         from google.cloud import storage  # type: ignore[import-untyped]
         self._client = storage.Client()
+
+    def bucket_accessible(self, bucket: str) -> bool:
+        next(iter(self._client.list_blobs(bucket, max_results=1)), None)
+        return True
 
     def upload_if_absent(
         self,
@@ -77,6 +82,7 @@ class RealGCSClient:
         sha256 = hashlib.sha256(data).hexdigest()
         bucket_obj = self._client.bucket(bucket)
         blob = bucket_obj.blob(object_path)
+        blob.metadata = {**(metadata or {}), "content_sha256": sha256}
 
         # Attempt to create only if the object is absent
         try:
@@ -84,19 +90,16 @@ class RealGCSClient:
                 data,
                 content_type=content_type,
                 if_generation_match=0,
-                # Store SHA-256 as custom metadata for future verification
-                **({} if metadata is None else {}),
             )
-            if metadata:
-                blob.metadata = {**metadata, "content_sha256": sha256}
-                blob.patch()
             blob.reload()
             logger.info("Uploaded gs://%s/%s (generation=%s)", bucket, object_path, blob.generation)
         except PreconditionFailed:
             # Object already exists — verify it has the same content
             blob.reload()
             existing_sha = (blob.metadata or {}).get("content_sha256")
-            if existing_sha and existing_sha != sha256:
+            if existing_sha is None:
+                existing_sha = hashlib.sha256(blob.download_as_bytes()).hexdigest()
+            if existing_sha != sha256:
                 raise ValueError(
                     f"gs://{bucket}/{object_path} already exists with DIFFERENT SHA-256 "
                     f"({existing_sha} != {sha256}); refusing to proceed"
@@ -121,11 +124,13 @@ class RealGCSClient:
         return blob.download_as_bytes()
 
     def object_info(self, bucket: str, object_path: str) -> GCSObjectInfo | None:
+        from google.api_core.exceptions import NotFound  # type: ignore[import-untyped]
+
         bucket_obj = self._client.bucket(bucket)
         blob = bucket_obj.blob(object_path)
         try:
             blob.reload()
-        except Exception:
+        except NotFound:
             return None
         sha = (blob.metadata or {}).get("content_sha256", "")
         return GCSObjectInfo(
@@ -136,3 +141,19 @@ class RealGCSClient:
             content_sha256=sha,
             size_bytes=blob.size or 0,
         )
+
+    def list_raw_objects(self, bucket: str, prefix: str, *, max_results: int = 100) -> list[GCSObjectInfo]:
+        """Bounded metadata listing for orphan reconciliation; never downloads data."""
+        if not prefix.startswith("noaa/raw/realtime/") or not 1 <= max_results <= 100:
+            raise ValueError("invalid raw prefix or listing budget")
+        result = []
+        for blob in self._client.list_blobs(bucket, prefix=prefix, max_results=max_results):
+            if not blob.name.endswith("-snapshot.txt") or blob.generation is None:
+                continue
+            result.append(GCSObjectInfo(
+                bucket=bucket, object_path=blob.name, gcs_uri=f"gs://{bucket}/{blob.name}",
+                generation=int(blob.generation),
+                content_sha256=(blob.metadata or {}).get("content_sha256", ""),
+                size_bytes=blob.size or 0,
+            ))
+        return result

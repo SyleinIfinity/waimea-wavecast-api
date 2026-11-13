@@ -32,11 +32,13 @@ class FakeDatabaseGateway:
         self._next_file_id: int = 1
         # file_id -> SourceFileDTO
         self._source_files: dict[int, SourceFileDTO] = {}
-        # (station_id, content_sha256) -> file_id  (dedup)
-        self._file_hash_index: dict[tuple[str, str], int] = {}
+        # (station_id, feed_key, content_sha256) -> file_id (matches SQL)
+        self._file_hash_index: dict[tuple[str, str, str], int] = {}
 
         # (file_id, row_sha256) -> RawObservationDTO  (dedup)
         self._raw_obs: dict[tuple[int, str], RawObservationDTO] = {}
+        self._raw_ids: dict[tuple[int, str], int] = {}
+        self._next_raw_id = 1
 
         # (station_id, observed_at) -> SilverObservationDTO  (canonical)
         self._silver: dict[tuple[str, datetime], SilverObservationDTO] = {}
@@ -54,7 +56,7 @@ class FakeDatabaseGateway:
     # ------------------------------------------------------------------ #
 
     def register_source_file(self, dto: SourceFileDTO) -> int:
-        dedup_key = (dto.station_id, dto.content_sha256)
+        dedup_key = (dto.station_id, dto.feed_key, dto.content_sha256)
         if dedup_key in self._file_hash_index:
             existing_id = self._file_hash_index[dedup_key]
             logger.debug("FakeDB: source file already registered, file_id=%d", existing_id)
@@ -72,23 +74,27 @@ class FakeDatabaseGateway:
 
     def upsert_raw_batch(self, rows: list[RawObservationDTO]) -> dict[str, int]:
         inserted = duplicate = 0
+        raw_ids = {}
         for row in rows:
             key = (row.file_id, row.row_sha256)
             if key in self._raw_obs:
                 duplicate += 1
             else:
                 self._raw_obs[key] = row
+                self._raw_ids[key] = self._next_raw_id
+                self._next_raw_id += 1
                 inserted += 1
+            raw_ids[row.row_sha256] = self._raw_ids[key]
         self.counters["raw_inserted"] += inserted
         self.counters["raw_duplicate"] += duplicate
-        return {"inserted": inserted, "duplicate": duplicate}
+        return {"inserted": inserted, "duplicate": duplicate, "raw_ids": raw_ids}
 
     # ------------------------------------------------------------------ #
     # Silver observations                                                  #
     # ------------------------------------------------------------------ #
 
     def upsert_silver_batch(self, rows: list[SilverObservationDTO]) -> dict[str, int]:
-        inserted = revised = duplicate = 0
+        inserted = revised = duplicate = skipped = 0
         for row in rows:
             key = (row.station_id, row.observed_at)
             existing = self._silver.get(key)
@@ -107,12 +113,12 @@ class FakeDatabaseGateway:
                 self._silver[key] = row
                 revised += 1
             else:
-                duplicate += 1
+                skipped += 1
 
         self.counters["silver_inserted"] += inserted
         self.counters["silver_revised"] += revised
         self.counters["silver_duplicate"] += duplicate
-        return {"inserted": inserted, "revised": revised, "duplicate": duplicate}
+        return {"inserted": inserted, "updated": revised, "revised": revised, "duplicate": duplicate, "skipped": skipped}
 
     # ------------------------------------------------------------------ #
     # Daily features                                                       #
@@ -172,6 +178,8 @@ class FakeDatabaseGateway:
         self._source_files.clear()
         self._file_hash_index.clear()
         self._raw_obs.clear()
+        self._raw_ids.clear()
+        self._next_raw_id = 1
         self._silver.clear()
         self._daily.clear()
         self._jobs.clear()

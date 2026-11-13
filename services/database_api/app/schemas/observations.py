@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
@@ -31,6 +31,12 @@ class SourceFileIn(APIModel):
     gcs_bucket: str | None = None
     gcs_object_name: str | None = None
     source_etag: str | None = None
+    parser_version: str | None = None
+    source_row_count: int | None = Field(default=None, ge=0)
+    parse_error_count: int = Field(default=0, ge=0)
+    parse_status: Literal["pending", "parsed", "partial", "failed"] = "pending"
+    parsed_at: datetime | None = None
+    columns_in_source: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def storage_valid(self):
@@ -108,6 +114,23 @@ class SilverBatch(APIModel):
     rows: list[SilverRow] = Field(min_length=1, max_length=500)
 
 
+class QualityDecisionIn(APIModel):
+    station_id: Literal["51201"] = "51201"
+    observed_at: datetime
+    measurement_sha256: str = Field(pattern=r"^[a-fA-F0-9]{64}$")
+    quality_status: Literal["valid", "suspect", "rejected"]
+    quality_flags: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("observed_at")
+    @classmethod
+    def utc(cls, value):
+        return require_utc(value)
+
+
+class QualityBatch(APIModel):
+    rows: list[QualityDecisionIn] = Field(min_length=1, max_length=500)
+
+
 class DailyFeatures(APIModel):
     station_id: Literal["51201"] = "51201"
     date_hst: date
@@ -126,6 +149,10 @@ class DailyFeatures(APIModel):
     mean_sea_surface_temp_c: float | None = None
     max_wind_speed_ms: float | None = None
     good_quality_count: int = Field(ge=0)
+    missing_count: int = Field(default=0, ge=0)
+    suspect_count: int = Field(default=0, ge=0)
+    rejected_count: int = Field(default=0, ge=0)
+    unverified_count: int = Field(default=0, ge=0)
     calculation_version: str = "v1"
     mean_average_period_s: float | None = None
     max_dominant_period_s: float | None = None
@@ -187,4 +214,23 @@ class GapIn(APIModel):
         self.gap_end_at = require_utc(self.gap_end_at)
         if self.gap_end_at <= self.gap_start_at:
             raise ValueError("gap end must follow start")
+        return self
+
+
+class GapReconcileIn(APIModel):
+    station_id: Literal["51201"] = "51201"
+    window_start: datetime
+    window_end: datetime
+    cadence_minutes: int = Field(gt=0, le=180)
+    missing_slots: list[datetime] = Field(max_length=500)
+
+    @model_validator(mode="after")
+    def valid_window(self):
+        self.window_start = require_utc(self.window_start)
+        self.window_end = require_utc(self.window_end)
+        self.missing_slots = [require_utc(value) for value in self.missing_slots]
+        if self.window_end <= self.window_start or self.window_end-self.window_start > timedelta(days=8):
+            raise ValueError("gap reconciliation window must be at most 8 days")
+        if any(not self.window_start < value < self.window_end for value in self.missing_slots):
+            raise ValueError("gap slot outside window")
         return self

@@ -14,3 +14,4 @@ artifacts/
 notebooks/**/.ipynb_checkpoints/
 terraform.tfstate*
 .terraform/
+setup_env.py
