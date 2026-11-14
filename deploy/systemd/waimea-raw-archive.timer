@@ -1,0 +1,10 @@
+[Unit]
+Description=Archive one old Waimea Raw month per day
+
+[Timer]
+OnCalendar=*-*-* 04:45:00 UTC
+Persistent=true
+Unit=waimea-raw-archive.service
+
+[Install]
+WantedBy=timers.target

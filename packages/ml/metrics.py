@@ -10,7 +10,8 @@ def regression(actual: list[float], predicted: list[float]) -> dict:
         raise ValueError("paired nonempty samples required")
     errors = [a - p for a, p in zip(actual, predicted)]
     mse = mean(e * e for e in errors)
-    denominator = sum((a - mean(actual)) ** 2 for a in actual)
+    actual_mean = mean(actual)
+    denominator = sum((a - actual_mean) ** 2 for a in actual)
     return {"sample_count": len(actual), "mae": mean(abs(e) for e in errors),
             "rmse": sqrt(mse), "r2_score": None if denominator == 0 else 1 - sum(e * e for e in errors) / denominator}
 

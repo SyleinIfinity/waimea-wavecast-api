@@ -11,6 +11,16 @@ services:
     env_file: [ .env.production ]
   historical-backfill:
     env_file: [ .env.production ]
+  revision-archive:
+    env_file: [ .env.production ]
+  raw-archive:
+    env_file: [ .env.production ]
+  forward-forecast:
+    env_file: [ .env.production ]
+  calisthenics-replay:
+    env_file: [ .env.production ]
+  calisthenics-shadow:
+    env_file: [ .env.production ]
   analysis:
     env_file: [ .env.production ]
   clustering:

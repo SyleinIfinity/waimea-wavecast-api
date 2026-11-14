@@ -15,6 +15,8 @@ from services.database_api.app.api.pipeline import router as pipeline_router
 from services.database_api.app.api.derived import router as derived_router
 from services.database_api.app.api.datalake import router as datalake_router
 from services.database_api.app.api.public import router as public_router
+from services.database_api.app.api.forward import router as forward_router, public_router as forward_public_router
+from services.database_api.app.api.calisthenics_shadow import router as shadow_public_router
 from services.database_api.app.config import Settings, get_settings
 from services.database_api.app.db.session import Database
 
@@ -51,6 +53,9 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
     app.include_router(derived_router)
     app.include_router(datalake_router)
     app.include_router(admin_router)
+    app.include_router(forward_router)
+    app.include_router(forward_public_router)
+    app.include_router(shadow_public_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):

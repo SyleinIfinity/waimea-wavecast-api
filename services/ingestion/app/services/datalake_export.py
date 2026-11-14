@@ -21,7 +21,7 @@ def _window(year: int, month: int, layer: str) -> tuple[datetime, datetime]:
     return datetime(year, month, 1, tzinfo=timezone.utc), datetime(next_year, next_month, 1, tzinfo=timezone.utc)
 
 
-def _rows(gateway, layer: str, year: int, month: int) -> list[dict]:
+def _rows(gateway, layer: str, year: int, month: int, gcs=None) -> list[dict]:
     start, end = _window(year, month, layer)
     rows: list[dict] = []
     if layer == "bronze":
@@ -33,6 +33,38 @@ def _rows(gateway, layer: str, year: int, month: int) -> list[dict]:
             if page["next_after"] is None:
                 break
             after = page["next_after"]
+        archived = {int(row["raw_values"]["archive_export_id"]) for row in rows
+                    if isinstance(row.get("raw_values"), dict) and "archive_export_id" in row["raw_values"]}
+        if archived:
+            if gcs is None:
+                from packages.gcs.client import RealGCSClient
+                gcs = RealGCSClient()
+            payloads = {}
+            for export_id in archived:
+                export = gateway._request("GET", f"/internal/v1/datalake/exports/by-id/{export_id}")
+                if export["layer"] != "bronze" or export["partition_key"] != f"station=51201/year={year}/month={month:02d}":
+                    raise RuntimeError("Raw archive partition mismatch")
+                path = export["gcs_uri"].removeprefix("gs://waimea-noaa/")
+                if path == export["gcs_uri"]:
+                    raise RuntimeError("Raw archive bucket mismatch")
+                blob = gcs.download("waimea-noaa", path, int(export["gcs_generation"]))
+                if hashlib.sha256(blob).hexdigest() != export["content_sha256"]:
+                    raise RuntimeError("Raw archive GCS checksum mismatch")
+                decoded = gzip.decompress(blob).splitlines()
+                header = json.loads(decoded[0])
+                if header["record_count"] != len(decoded) - 1:
+                    raise RuntimeError("Raw archive row count mismatch")
+                payloads[export_id] = {item["data"]["raw_id"]: item["data"]
+                                       for item in map(json.loads, decoded[1:])}
+            for row in rows:
+                ref = row.get("raw_values", {}).get("archive_export_id")
+                if ref is None:
+                    continue
+                original = payloads[int(ref)].get(row["raw_id"])
+                if original is None or original["row_sha256"] != row["row_sha256"]:
+                    raise RuntimeError("Raw archive row missing or hash mismatch")
+                row["raw_line"] = original["raw_line"]
+                row["raw_values"] = original["raw_values"]
     elif layer == "silver":
         after = None
         while True:
@@ -105,7 +137,7 @@ def export_month(gateway, gcs, *, bucket: str, layer: str, year: int, month: int
     """Export a bounded partition; activate only after DB reread and GCS round trip."""
     if bucket != "waimea-noaa" or layer not in LAYERS or not 2000 <= year <= 2100 or not 1 <= month <= 12:
         raise ValueError("invalid export target")
-    rows = _rows(gateway, layer, year, month)
+    rows = _rows(gateway, layer, year, month, gcs)
     sources = _gold_sources(gateway, year, month) if layer == "gold" else []
     raw = _canonical(rows, layer, year, month, sources)
     payload = _gzip(raw)
@@ -132,7 +164,7 @@ def export_month(gateway, gcs, *, bucket: str, layer: str, year: int, month: int
         stored = gcs.download(bucket, object_path, info.generation)
         if hashlib.sha256(stored).hexdigest() != sha or gzip.decompress(stored) != raw:
             raise RuntimeError("GCS round-trip verification failed")
-        reread = _rows(gateway, layer, year, month)
+        reread = _rows(gateway, layer, year, month, gcs)
         current_sources = _gold_sources(gateway, year, month) if layer == "gold" else []
         if _canonical(reread, layer, year, month, current_sources) != raw:
             raise RuntimeError("PostgreSQL partition changed during export")
@@ -166,7 +198,7 @@ def verify_month(gateway, gcs, *, bucket: str, layer: str, year: int, month: int
     stored = gcs.download(bucket, object_path, int(row["gcs_generation"]))
     if hashlib.sha256(stored).hexdigest() != row["content_sha256"]:
         raise RuntimeError("active export GCS checksum mismatch")
-    records = _rows(gateway, layer, year, month)
+    records = _rows(gateway, layer, year, month, gcs)
     sources = _gold_sources(gateway, year, month) if layer == "gold" else []
     if _gzip(_canonical(records, layer, year, month, sources)) != stored or len(records) != row["row_count"]:
         raise RuntimeError("active export differs from PostgreSQL partition")

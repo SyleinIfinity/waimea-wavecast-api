@@ -20,7 +20,8 @@ def save_gold_results(conn, batch: GoldBatch) -> dict:
             raise ValueError("invalid Gold result columns")
         if row.get("station_id") != "51201":
             raise ValueError("only station 51201 is supported")
-        upsert_row(conn, "gold", batch.table, row, keys)
+        upsert_row(conn, "gold", batch.table, row, keys,
+                   refresh_timestamp_column="computed_at" if batch.table == "resolution_metrics" else None)
     return {"saved": len(batch.rows), "table": batch.table}
 
 

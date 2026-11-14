@@ -31,3 +31,26 @@ def test_bounded_orphan_scan_replays_only_unregistered_pinned_generation(monkeyp
     assert len(result["repaired"]) == 1
     assert replays == [("realtime", 2026, objects[-1].object_path, 3)]
     assert result["truncated"] is True
+
+
+def test_complete_snapshot_with_reused_raw_is_not_replayed(monkeypatch):
+    item = SimpleNamespace(object_path="noaa/raw/realtime/2026/11/12/snapshot.txt",
+                           gcs_uri="gs://waimea-noaa/noaa/raw/realtime/2026/11/12/snapshot.txt",
+                           generation=1)
+
+    class GCS:
+        def list_raw_objects(self, bucket, prefix, *, max_results):
+            return [item] if prefix.endswith("2026/11/12/") else []
+
+    class DB:
+        def source_file_by_gcs(self, uri, generation):
+            return {"found": True, "source_row_count": 2100, "raw_count": 0,
+                    "ingest_complete": True}
+
+    def unexpected(*args, **kwargs):
+        raise AssertionError("complete snapshot must not replay")
+
+    monkeypatch.setattr("services.ingestion.app.jobs.orphans.replay_stored_object", unexpected)
+    result = reconcile_orphans(gcs_client=GCS(), db_gateway=DB(), bucket="waimea-noaa",
+                               now=datetime(2026, 11, 12, 12, tzinfo=timezone.utc))
+    assert result["repaired"] == []

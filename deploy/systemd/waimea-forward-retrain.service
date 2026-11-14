@@ -1,0 +1,11 @@
+[Unit]
+Description=Waimea controlled DRAFT retraining from QC-verified forward forecasts
+Wants=network-online.target
+After=network-online.target docker.service waimea-wavecast-api.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile forward run --rm --no-deps forward-forecast python -m training.tl08c_retrain_cli
+TimeoutStartSec=1800

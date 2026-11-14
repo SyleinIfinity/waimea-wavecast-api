@@ -1,0 +1,10 @@
+[Unit]
+Description=Waimea verified monthly Raw payload archive
+After=network-online.target docker.service waimea-wavecast-api.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile archive run --rm --no-deps raw-archive
+TimeoutStartSec=3600

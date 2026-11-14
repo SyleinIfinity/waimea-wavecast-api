@@ -28,14 +28,21 @@ def insert_row(conn, schema: str, table: str, values: dict[str, Any], *, conflic
     return conn.execute(statement, [adapted(values[c], c) for c in columns])
 
 
-def upsert_row(conn, schema: str, table: str, values: dict[str, Any], keys: tuple[str, ...]):
+def upsert_row(conn, schema: str, table: str, values: dict[str, Any], keys: tuple[str, ...],
+               *, refresh_timestamp_column: str | None = None):
     columns = list(values)
+    updates = [sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(c), sql.Identifier(c))
+               for c in columns if c not in keys]
+    if refresh_timestamp_column is not None:
+        if refresh_timestamp_column in columns:
+            raise ValueError("timestamp column must use database clock")
+        updates.append(sql.SQL("{} = clock_timestamp()").format(sql.Identifier(refresh_timestamp_column)))
     statement = sql.SQL("INSERT INTO {}.{} ({}) VALUES ({}) ON CONFLICT ({}) DO UPDATE SET {}").format(
         sql.Identifier(schema), sql.Identifier(table),
         sql.SQL(", ").join(map(sql.Identifier, columns)),
         sql.SQL(", ").join(sql.Placeholder() for _ in columns),
         sql.SQL(", ").join(map(sql.Identifier, keys)),
-        sql.SQL(", ").join(sql.SQL("{} = EXCLUDED.{}").format(sql.Identifier(c), sql.Identifier(c)) for c in columns if c not in keys),
+        sql.SQL(", ").join(updates),
     )
     return conn.execute(statement, [adapted(values[c], c) for c in columns])
 

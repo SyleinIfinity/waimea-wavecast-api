@@ -22,7 +22,7 @@ def reconcile_orphans(*, gcs_client, db_gateway, bucket: str,
     for item in objects:
         scanned += 1
         state = db_gateway.source_file_by_gcs(item.gcs_uri, item.generation)
-        incomplete = not state["found"] or (state["source_row_count"] is not None and
+        incomplete = not state["found"] or (not state.get("ingest_complete") and state["source_row_count"] is not None and
                                             state["raw_count"] < state["source_row_count"])
         if not incomplete:
             continue

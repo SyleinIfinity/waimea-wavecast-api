@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Waimea Backend freshness every ten minutes
+
+[Timer]
+OnBootSec=6min
+OnUnitActiveSec=10min
+Persistent=true
+Unit=waimea-backend-watchdog.service
+
+[Install]
+WantedBy=timers.target

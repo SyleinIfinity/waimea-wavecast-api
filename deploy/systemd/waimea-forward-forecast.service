@@ -1,0 +1,11 @@
+[Unit]
+Description=Waimea forward NOAA forecasts and QC ground-truth reconciliation
+Wants=network-online.target
+After=network-online.target docker.service waimea-wavecast-api.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile forward run --rm --no-deps forward-forecast
+TimeoutStartSec=300

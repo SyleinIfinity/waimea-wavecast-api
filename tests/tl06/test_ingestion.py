@@ -40,6 +40,18 @@ def test_lineage_idempotency_and_correction():
     assert len(gcs._store) == 2
 
 
+def test_realtime_rolling_snapshot_reuses_existing_raw_row():
+    db, gcs = FakeDatabaseGateway(), FakeGCSClient()
+    first = run_ingest("realtime", 2023, noaa_client=source(payload()), gcs_client=gcs, db_gateway=db)
+    second_bytes = gzip.decompress(payload()).replace(b"#yr mo dy hr mn", b"#yr mo dy hr mn") + b"# snapshot refreshed\n"
+    second = run_ingest("realtime", 2023, noaa_client=source(gzip.compress(second_bytes)),
+                        gcs_client=gcs, db_gateway=db)
+    assert first.success and second.success
+    assert first.file_id != second.file_id
+    assert second.raw_inserted == 0 and second.raw_duplicate == 1
+    assert len(db._raw_obs) == 1 and len(gcs._store) == 2
+
+
 def test_gcs_success_db_failure_then_replay():
     db, gcs = FakeDatabaseGateway(), FakeGCSClient()
     original = db.register_source_file

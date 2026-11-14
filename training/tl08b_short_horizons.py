@@ -11,7 +11,8 @@ from packages.ml.metrics import regression
 from training.train_regression import train as fit_regression
 
 SHORT_HORIZONS = {"30min": timedelta(minutes=30), "1h": timedelta(hours=1),
-                  "6h": timedelta(hours=6), "24h": timedelta(hours=24)}
+                  "90min": timedelta(minutes=90), "6h": timedelta(hours=6),
+                  "24h": timedelta(hours=24)}
 HST = ZoneInfo("Pacific/Honolulu")
 FEATURES = ("wave_lag0", "wave_lag30m", "wave_lag1h", "wave_lag3h",
             "period_lag0", "period_lag1h")

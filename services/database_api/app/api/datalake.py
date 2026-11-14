@@ -1,4 +1,7 @@
 """Internal, bounded source reads and durable GCS export/backfill state."""
+import gzip
+import hashlib
+import json
 from datetime import datetime, timezone
 from typing import Literal
 from uuid import UUID, uuid4
@@ -7,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from services.database_api.app.repositories.common import json_safe
+from packages.gcs.client import RealGCSClient
 from services.database_api.app.security import internal_auth
 
 router = APIRouter(prefix="/internal/v1/datalake", tags=["internal"], dependencies=[Depends(internal_auth)])
@@ -93,6 +97,52 @@ def raw_rows(request: Request, start: datetime, end: datetime, after_raw_id: int
             "ORDER BY r.raw_id LIMIT %s", (start,end,after_raw_id,limit),
         ).fetchall()
     return {"data": json_safe(rows), "next_after": rows[-1]["raw_id"] if len(rows)==limit else None}
+
+
+@router.get("/exports/by-id/{export_id}")
+def export_by_id(request: Request, export_id: int):
+    with request.app.state.db.connection() as conn:
+        row = conn.execute(
+            "SELECT export_id,layer,partition_key,row_count,content_sha256,gcs_uri,"
+            "gcs_generation,state FROM gold.dataset_exports WHERE export_id=%s",
+            (export_id,),
+        ).fetchone()
+    if row is None or row["state"] != "VERIFIED" or row["gcs_generation"] is None:
+        raise HTTPException(404, "verified export not found")
+    return json_safe(row)
+
+
+@router.get("/revisions/{revision_id}")
+def revision_by_id(request: Request, revision_id: int):
+    with request.app.state.db.connection() as conn:
+        row = conn.execute("SELECT * FROM silver.wave_observation_revisions WHERE revision_id=%s",
+                           (revision_id,)).fetchone()
+        if row is None:
+            raise HTTPException(404, "revision not found")
+        archive_id = row["snapshot"].get("archive_id")
+        archive = conn.execute("SELECT * FROM silver.revision_payload_archives WHERE archive_id=%s",
+                               (archive_id,)).fetchone() if archive_id is not None else None
+    if archive_id is None:
+        return json_safe(row)
+    if archive is None:
+        raise HTTPException(503, "revision archive metadata missing")
+    path = archive["gcs_uri"].removeprefix("gs://waimea-noaa/")
+    if path == archive["gcs_uri"]:
+        raise HTTPException(503, "revision archive bucket mismatch")
+    blob = RealGCSClient().download("waimea-noaa", path, archive["gcs_generation"])
+    if hashlib.sha256(blob).hexdigest() != archive["content_sha256"].strip():
+        raise HTTPException(503, "revision archive checksum mismatch")
+    lines = gzip.decompress(blob).splitlines()
+    header = json.loads(lines[0])
+    if header["row_count"] != archive["row_count"] or len(lines) != archive["row_count"] + 1:
+        raise HTTPException(503, "revision archive row count mismatch")
+    for line in lines[1:]:
+        item = json.loads(line)["data"]
+        if item["revision_id"] == revision_id:
+            if item["measurement_sha256"] != row["measurement_sha256"]:
+                raise HTTPException(503, "revision archive metadata mismatch")
+            return item
+    raise HTTPException(503, "revision missing from archive")
 
 
 @router.get("/silver/rows")

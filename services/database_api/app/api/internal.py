@@ -42,14 +42,30 @@ def source_file_by_gcs(request: Request, uri: str, generation: int):
         raise HTTPException(422, "invalid pinned raw object")
     with connection(request) as conn:
         row = conn.execute(
-            "SELECT f.file_id,f.source_row_count,"
+            "SELECT f.file_id,f.source_row_count,f.extra_metadata->>'ingest_complete' AS ingest_complete,"
             "(SELECT count(*) FROM bronze.raw_observations r WHERE r.file_id=f.file_id) AS raw_count "
             "FROM bronze.source_files f WHERE f.gcs_uri=%s AND f.gcs_generation=%s LIMIT 1",
             (uri, str(generation)),
         ).fetchone()
     return {"found": row is not None, "file_id": row["file_id"] if row else None,
             "source_row_count": row["source_row_count"] if row else None,
-            "raw_count": row["raw_count"] if row else None}
+            "raw_count": row["raw_count"] if row else None,
+            "ingest_complete": row["ingest_complete"] == "true" if row else False}
+
+
+@router.post("/source-files/{file_id}/complete")
+def complete_source_file(request: Request, file_id: int, idempotency_key: str | None = Header(default=None)):
+    key_required(idempotency_key)
+    with connection(request) as conn:
+        row = conn.execute(
+            "UPDATE bronze.source_files SET extra_metadata="
+            "jsonb_set(extra_metadata,'{ingest_complete}','true'::jsonb) "
+            "WHERE file_id=%s AND gcs_upload_status='verified' "
+            "RETURNING file_id", (file_id,),
+        ).fetchone()
+    if row is None:
+        raise HTTPException(404, "verified source file not found")
+    return {"file_id": file_id, "ingest_complete": True}
 
 
 @router.post("/raw-observations/bulk")
@@ -57,8 +73,11 @@ def upsert_raw_batch(request: Request, body: RawBatch, idempotency_key: str | No
     key_required(idempotency_key)
     if len(body.rows) > request.app.state.settings.max_batch_size:
         raise HTTPException(422, "batch too large")
-    with connection(request) as conn:
-        return bronze.upsert_raw_batch(conn, body)
+    try:
+        with connection(request) as conn:
+            return bronze.upsert_raw_batch(conn, body)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @router.post("/ingestion-runs", status_code=201)

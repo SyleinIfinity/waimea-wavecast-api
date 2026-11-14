@@ -20,7 +20,7 @@ class Gateway:
     def __init__(self):
         self.rows = [{"raw_id": 1, "file_id": 4, "observed_at": "2004-01-01T00:26:00Z",
                       "raw_line": "2004 01 01 00 26", "source_url": "https://www.ndbc.noaa.gov/",
-                      "source_sha256": "a" * 64}]
+                      "source_sha256": "a" * 64, "row_sha256": "b" * 64}]
         self.pending = {}
         self.active = {}
         self.fail_complete = False
@@ -28,7 +28,7 @@ class Gateway:
 
     def _request(self, method, path, *, params=None, body=None):
         if path.endswith("/bronze/raw"):
-            return {"data": list(self.rows), "next_after": None}
+            return {"data": [dict(row) for row in self.rows], "next_after": None}
         if path.endswith("/exports/prepare"):
             key = (body["layer"], body["partition_key"], body["content_sha256"])
             self.pending.setdefault(key, {"export_id": len(self.pending) + 1, "state": "PENDING_EXPORT", **body})
@@ -38,8 +38,12 @@ class Gateway:
         if path.endswith("/exports/complete"):
             if self.fail_complete:
                 raise RuntimeError("manifest commit unavailable")
-            self.active[body["export_id"]] = body["gcs_generation"]
             row = next(item for item in self.pending.values() if item["export_id"] == body["export_id"])
+            for export_id in list(self.active):
+                previous = next(item for item in self.pending.values() if item["export_id"] == export_id)
+                if previous["layer"] == row["layer"] and previous["partition_key"] == row["partition_key"]:
+                    del self.active[export_id]
+            self.active[body["export_id"]] = body["gcs_generation"]
             row.update(state="VERIFIED", gcs_generation=body["gcs_generation"])
             return {"state": "VERIFIED"}
         if path.endswith("/exports/fail"):
@@ -51,6 +55,9 @@ class Gateway:
                 if row["export_id"] in self.active and row["layer"] == params["layer"] and row["partition_key"] == params["partition_key"]:
                     return row
             return {"found": False}
+        if "/exports/by-id/" in path:
+            export_id = int(path.rsplit("/", 1)[1])
+            return next(item for item in self.pending.values() if item["export_id"] == export_id)
         raise AssertionError(path)
 
 
@@ -134,6 +141,39 @@ def test_independent_reconciliation_detects_gcs_corruption():
     gcs.objects[object_path] = b"tampered"
     with pytest.raises(RuntimeError, match="checksum mismatch"):
         verify_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)
+
+
+def test_archived_raw_stub_rehydrates_from_pinned_month_export():
+    db, gcs = Gateway(), GCS()
+    db.rows[0]["raw_values"] = {"WVHT": "1.5"}
+    exported = export_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)
+    export_id = next(iter(db.active))
+    db.rows[0]["raw_line"] = None
+    db.rows[0]["raw_values"] = {"archive_export_id": export_id}
+    result = verify_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)
+    assert result["content_sha256"] == exported["sha256"]
+    assert db.rows[0]["raw_line"] is None
+    path = exported["gcs_uri"].removeprefix("gs://waimea-noaa/")
+    gcs.objects[path] = b"corrupted"
+    with pytest.raises(RuntimeError, match="checksum mismatch"):
+        verify_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)
+
+
+def test_corrected_archive_month_keeps_old_raw_export_recoverable():
+    db, gcs = Gateway(), GCS()
+    db.rows[0]["raw_values"] = {"WVHT": "1.5"}
+    first = export_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)
+    first_id = next(iter(db.active))
+    db.rows[0]["raw_line"] = None
+    db.rows[0]["raw_values"] = {"archive_export_id": first_id}
+    db.rows.append({"raw_id": 2, "file_id": 5, "observed_at": "2004-01-01T00:56:00Z",
+                    "raw_line": "2004 01 01 00 56", "raw_values": {"WVHT": "2.0"},
+                    "row_sha256": "c" * 64})
+    second = export_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)
+    assert first["sha256"] != second["sha256"]
+    assert len(gcs.objects) == 2
+    assert verify_month(db, gcs, bucket="waimea-noaa", layer="bronze", year=2004, month=1)["row_count"] == 2
+    assert db.rows[0]["raw_line"] is None
 
 
 def test_discovery_url_validation_and_reconciliation_window():

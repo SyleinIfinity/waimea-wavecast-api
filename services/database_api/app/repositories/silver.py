@@ -74,7 +74,8 @@ def upsert_silver_batch(conn, batch: SilverBatch) -> dict:
 
 def upsert_daily_features(conn, item: DailyFeatures) -> dict:
     values = item.model_dump(exclude_none=True)
-    upsert_row(conn, "silver", "daily_wave_features", values, ("station_id", "date_hst"))
+    upsert_row(conn, "silver", "daily_wave_features", values, ("station_id", "date_hst"),
+               refresh_timestamp_column="calculated_at")
     return {"station_id": item.station_id, "date_hst": item.date_hst.isoformat()}
 
 

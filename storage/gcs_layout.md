@@ -6,7 +6,9 @@ all name this same bucket; the latter three preserve existing module settings.
 
 | Data | Object prefix | Current use |
 | --- | --- | --- |
-| NOAA raw datasets | `noaa/raw/` | Ingestion path builders; production ingestion still uses a fake adapter |
+| NOAA raw datasets | `noaa/raw/` | Immutable NOAA source files from production ingestion |
+| Monthly Bronze/Silver/Gold | `datasets/{bronze,silver,gold}/station=51201/year=YYYY/month=MM/` | Verified content-addressed exports; old Raw rows reference Bronze export IDs |
+| Historical revision snapshots | `datasets/revisions/station=51201/year=YYYY/month=MM/` | Verified monthly JSONL gzip archives; Cloud SQL retains revision metadata and archive IDs |
 | Processed datasets | `datasets/processed/` | Reserved |
 | Training datasets | `datasets/training/` | Live training CLI writes Parquet snapshots |
 | ML models | `models/` | Live training CLI and inference workers |
