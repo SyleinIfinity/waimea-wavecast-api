@@ -1,0 +1,10 @@
+[Unit]
+Description=Waimea Backend data freshness and scheduled job watchdog
+After=network-online.target docker.service waimea-wavecast-api.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/python3 deploy/scripts/check-production.py
+TimeoutStartSec=60
+SyslogIdentifier=waimea-backend-watchdog

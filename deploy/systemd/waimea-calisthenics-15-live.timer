@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Calisthenics 1.5 for 20 new QC-matched 30-minute pairs
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=10min
+Persistent=true
+Unit=waimea-calisthenics-15-live.service
+
+[Install]
+WantedBy=timers.target

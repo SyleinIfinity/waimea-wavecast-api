@@ -77,17 +77,29 @@ class FakeDatabaseGateway:
         raw_ids = {}
         for row in rows:
             key = (row.file_id, row.row_sha256)
-            if key in self._raw_obs:
+            same_reading = next(
+                (raw_id for (file_id, existing_hash), raw_id in self._raw_ids.items()
+                 if row.observed_at is not None and
+                 self._source_files[file_id].feed_key == "realtime" and
+                 self._raw_obs[(file_id, existing_hash)].station_id == row.station_id and
+                 self._raw_obs[(file_id, existing_hash)].observed_at == row.observed_at and
+                 existing_hash == row.row_sha256), None,
+            ) if self._source_files[row.file_id].feed_key == "realtime" else None
+            if key in self._raw_obs or same_reading is not None:
                 duplicate += 1
             else:
                 self._raw_obs[key] = row
                 self._raw_ids[key] = self._next_raw_id
                 self._next_raw_id += 1
                 inserted += 1
-            raw_ids[row.row_sha256] = self._raw_ids[key]
+            raw_ids[row.row_sha256] = self._raw_ids.get(key, same_reading)
         self.counters["raw_inserted"] += inserted
         self.counters["raw_duplicate"] += duplicate
         return {"inserted": inserted, "duplicate": duplicate, "raw_ids": raw_ids}
+
+    def complete_source_file(self, file_id: int) -> None:
+        if file_id not in self._source_files:
+            raise ValueError("unknown source file")
 
     # ------------------------------------------------------------------ #
     # Silver observations                                                  #

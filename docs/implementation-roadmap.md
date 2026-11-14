@@ -79,7 +79,8 @@ readiness. No model was trained or enabled by TL08-A.
 
 TL08-B has trained real NOAA next-day regression/classification and K-means
 models plus exact-timestamp 30-minute, 1-hour, 6-hour and 24-hour regression
-models, and 7-day and 30-day daily regression models. All nine are DRAFT/NOT_READY;
+models, and 7-day and 30-day daily regression models. A 90-minute source-lead
+model was added for operational 30-minute forecasts. All ten are DRAFT/NOT_READY;
 the 7/30-day models passed three retrospective embargoed walk-forward folds,
 but publication-time feature availability and live performance remain
 unverified. All four exact-observation models underperform persistence on
@@ -87,9 +88,15 @@ held-out MAE. The Database API now rejects promotion without an explicit READY
 quality gate.
 See `docs/contributions/TL08-B_MODEL_TRAINING_AND_VALIDATION.md`.
 
-TL08-C inference remains disabled because there is no qualified READY model.
-The next implementation work is per-horizon readiness evidence, short-horizon
-validation, live feature checks, immutable GCS forecast persistence and
-ground-truth reconciliation. Do not present historical backtests as live
-forecast accuracy. See
+TL08-C now runs production forward-issued forecasts in a separate experimental
+ledger for 30-minute, next-day and seven-day horizons. The models remain DRAFT;
+their values are explicitly labelled experimental and do not enter approved
+Gold predictions. A five-minute systemd timer issues forecasts and reconciles
+QC NOAA truth; a weekly timer checks whether enough matched examples exist to
+train a new DRAFT model. Prospective forecasts for all three horizons were persisted
+in Cloud SQL and verified private GCS; an initially late one-day forecast is retained for audit
+but excluded from training and skill metrics. The first 30-minute target was matched to
+exact NOAA Silver/Gold truth and its evaluated training example was verified in private GCS.
+Daily and seven-day live evaluations remain pending until their future target periods
+complete and pass QC. Do not present historical backtests as live accuracy. See
 `docs/contributions/TL08-C_AUTOMATED_FORECASTING_AND_EVALUATION.md`.

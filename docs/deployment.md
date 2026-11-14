@@ -19,7 +19,7 @@
 
 ## Notes
 - Compose `postgres-local` uses profile **devdb**; do not run it in production. The production overlay passes `.env.production` to each service; Database API connects directly over TLS.
-- Ingestion has a real NOAA-to-GCS-to-Bronze/Silver pipeline when `INGESTION_ADAPTER_MODE=real`. Preprocessing performs QC and computes HST Daily Features and six-resolution descriptive Gold. `pipeline-scheduler` runs the durable 00/30 UTC polling loop and bounded retries. TL08 training, prediction and automatic imputation remain disabled.
+- Ingestion has a real NOAA-to-GCS-to-Bronze/Silver pipeline when `INGESTION_ADAPTER_MODE=real`. Preprocessing performs QC and computes HST Daily Features and six-resolution descriptive Gold. `pipeline-scheduler` runs the durable 00/30 UTC polling loop and bounded retries. Separate TL08 experimental forecast and Calisthenics shadow timers run; approved-model prediction workers and automatic imputation remain disabled.
 - `dbwaimea.liems.io.vn` must resolve to an address reachable from the VM. Check DNS, routing, firewall and Cloud SQL network authorization for that address. `DB_SSLMODE=require` encrypts the connection; use a stricter verification mode and trusted CA if certificate identity verification is required.
 - Google Cloud Firewall does not control Cloud Run's ingress; frontend runs in a separate project service.
 - `docker compose down -v` deletes volumes in dev; it does not delete a managed Cloud SQL database.
@@ -106,7 +106,8 @@ of the 30-minute realtime scheduler (about 10:15 Vietnam time).
 after reboot. Inspect `systemctl status waimea-history-reconcile.timer` and
 `journalctl -u waimea-history-reconcile.service`. Keep the main
 `waimea-wavecast-api.service` enabled so the four core containers return
-after reboot. ML model training and prediction stay disabled.
+after reboot. Approved ML prediction workers remain disabled; the separate
+forward experimental forecast timer is described below.
 The service runs `scheduled_history_reconcile`: it checks at most one source
 requiring a download, publishes at most two pending years, then uploads a
 versioned coverage report to `manifests/station=51201/coverage/{sha256}.json`.
@@ -153,6 +154,9 @@ other origins are rejected. `ALLOWED_ORIGINS` is a comma-separated list in the
 protected production environment file. Remove the localhost entry when local
 browser development is no longer needed. A future HTTPS frontend needs an
 HTTPS API URL to avoid browser mixed-content blocking.
+For the experimental forecast response, pending actual values, and which
+future Backend changes require frontend work, see the forecast section in
+`docs/api-contract.md`.
 
 ## TL08-B model training checkpoint
 
@@ -164,7 +168,140 @@ requires an explicit READY quality gate and an existing successful test
 evaluation. Verify `/health/live`, `/health/ready`, and the registry after
 any Database API rollout. Do not enable `prediction`, `classification`, or
 `clustering` worker services while all model readiness statuses are NOT_READY.
-The evidence, holdout values and current blockers are in the TL08-B and TL08-C
-contribution reports. The existing Compose/systemd core stack restores after
-reboot; no TL08-C inference timer has been installed.
-- Security hardening, job authentication, rate limiting, monitoring, backups and rollbacks required before public production deployment.
+The evidence and holdout values are in the TL08-B contribution report. The
+existing Compose/systemd core stack restores after reboot.
+
+## TL08-C forward forecast timers
+
+The production VM runs real experimental forecasts from model 17 (issued
+30-minute horizon using a 90-minute observed-source lead), model 8 (next HST
+day median) and model 11 (HST day seven dates ahead). Configure
+`FORWARD_30MIN_MODEL_ID`, `FORWARD_1D_MODEL_ID` and `FORWARD_7D_MODEL_ID` in
+the protected `.env.production` file. These IDs stay pinned; retraining never
+silently replaces them. Forecasts are labelled `experimental`, stored in
+`gold.forward_forecasts` and private GCS, and exposed at
+`GET /api/v1/forecasts/experimental/latest`.
+
+Install `deploy/systemd/waimea-forward-forecast.service` and `.timer` into
+`/etc/systemd/system/`, then run `sudo systemctl daemon-reload` and
+`sudo systemctl enable --now waimea-forward-forecast.timer`. The timer launches
+the bounded `forward-forecast` Compose profile every five minutes. Install and
+enable the matching `waimea-forward-retrain` service/timer for Sunday 04:00 UTC
+checks of QC-matched training examples. Both timers are enabled on the current
+VM and return after reboot. The main Backend and historical timers remain
+independent. Check:
+
+```bash
+systemctl list-timers 'waimea-forward-*'
+journalctl -u waimea-forward-forecast.service -n 50 --no-pager
+curl -fsS http://127.0.0.1:8000/health/ready
+curl -fsS http://127.0.0.1:8000/api/v1/forecasts/experimental/latest
+```
+
+Apply migrations `11_tl08c_forward_forecasts.sql` and
+`12_tl08c_training_lead_policy.sql` in order before the new API/worker starts.
+Back up Cloud SQL before applying them. Migration 12 excludes late forecasts
+from training and skill metrics while retaining their audit records. The worker recovers incomplete
+GCS finalizations and appends evaluation events when QC Gold/Silver truth
+arrives. Its weekly retrainer requires at least 300 forward 30-minute examples
+or 180 daily examples and registers new models only as DRAFT. Disable both
+forward timers to roll back the worker without stopping ingestion; retain the
+ledger tables so issued forecasts and audit history survive. See the TL08-C
+contribution report for observed production evidence and limitations.
+
+## Calisthenics 1.5 continuation
+
+The `calisthenics-replay` Compose profile has four DRAFT 1.5 models seeded
+from Calisthenics 1.0 and continued on QC-valid 2026 data. Its independent
+systemd service/timer is `waimea-calisthenics-15-live`; install both unit files
+from `deploy/systemd`, then run `sudo systemctl daemon-reload` and
+`sudo systemctl enable --now waimea-calisthenics-15-live.timer` to restore the
+ten-minute check after VM reboot. The one-off service waits for 20 new
+QC-matched Calisthenics 1.5 shadow 30-minute outcomes, then records a new DRAFT candidate
+version. Check `systemctl list-timers 'waimea-calisthenics-15-live.timer'`
+and `journalctl -u waimea-calisthenics-15-live.service -n 30 --no-pager`.
+The timer never promotes a model or changes `FORWARD_*_MODEL_ID`. For exact
+bootstrap results, data gaps, and the distinction between retrospective and
+forward-issued skill, see
+`docs/contributions/CALISTHENICS_1_5_2026_CONTINUATION.md`.
+
+Apply additive migration `13_calisthenics_shadow.sql` after a verified
+PostgreSQL backup, build `database-api`, `calisthenics-shadow` and
+`calisthenics-replay`, then restart only Database API. Install and enable
+`waimea-calisthenics-15-shadow.service`/`.timer` from `deploy/systemd`.
+This five-minute worker issues forward shadow predictions for 30 minutes,
+1 day, 7 days and 30 days, checks private GCS round trips, and evaluates
+QC truth after each target. It is separate from approved predictions and
+the existing experimental forecast ledger. Check
+`GET /api/v1/forecasts/shadow/latest` and `/metrics`; a newly issued
+forecast correctly has null actual/error fields. The 30-day target is the
+mean of at least 27 QC-valid daily medians in the next 30 HST days.
+
+Install and enable `waimea-backend-watchdog.service`/`.timer` for a read-only
+ten-minute check of unit status, API readiness, shadow API and NOAA source
+freshness. A failed check exits nonzero and appears in `systemctl status` and
+`journalctl -u waimea-backend-watchdog.service`. This is a local failure
+signal; an external notification channel/policy still needs configuration.
+Run `python3 deploy/scripts/check-production.py` for an immediate check.
+
+Missing-data research is read-only: `python -m training.gap_holdout` masks
+known realtime observations, compares causal persistence with delayed linear
+interpolation, and prints MAE by gap length. Interpolation uses future data
+and must never be treated as realtime NOAA truth. Keep
+`AUTO_IMPUTATION_ENABLED=false` until a separate approved candidate policy
+is validated.
+External alert delivery, rate limiting, backup retention policy and a full
+Cloud SQL disaster-recovery exercise remain operational follow-up work.
+
+## Historical payload retention (24 complete UTC months)
+
+The realtime source remains immutable under `gs://waimea-noaa/noaa/raw/`, but
+identical readings across rolling snapshots now reuse one PostgreSQL Raw row.
+Each source file receives an `ingest_complete` marker after Silver succeeds, so
+orphan recovery can distinguish a fully processed, deduplicated file from an
+interrupted ingest. Run migration 14 before deploying the updated Database API.
+For the one-time pre-change backlog, run
+`python -m services.ingestion.scripts.prune_duplicate_raw` inside the
+`raw-archive` Compose profile to preview eligible source files, then repeat
+with `--apply`. The command verifies each pinned original GCS object by SHA-256,
+marks complete source files, and removes only later duplicate Raw rows with no
+Silver, revision or QC references. Rebuild any affected completed monthly
+Bronze exports with `export_month`; the current incomplete UTC month can be
+republished after it closes.
+
+Old Raw payloads remain recoverable from verified Bronze monthly exports. The
+Raw table keeps `raw_id`, source file, timestamp and row hash; `raw_line` and
+large `raw_values` are replaced by `archive_export_id`. The Bronze export
+reader downloads the pinned GCS generation and restores exact payloads for
+verification or a later corrected historical export. Revision rows likewise
+keep IDs, correction metadata and FKs while full JSON snapshots move to
+`datasets/revisions/` by month. Migration 15 records each verified revision
+GCS generation and SHA-256. Both archivers upload and read back GCS data,
+recheck SQL rows under lock, and only then compact Cloud SQL payloads.
+
+`RAW_ARCHIVE_RETENTION_MONTHS=24` and
+`REVISION_ARCHIVE_RETENTION_MONTHS=24` are set in the environment examples.
+The current month and the preceding 24 complete UTC months stay detailed in
+Cloud SQL. A one-off bounded run is:
+
+```bash
+sudo docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile archive run --rm --no-deps raw-archive
+sudo docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile archive run --rm --no-deps revision-archive
+```
+
+For automatic retention after VM reboot, install the two `waimea-raw-archive`
+and `waimea-revision-archive` service/timer pairs from `deploy/systemd/` into
+`/etc/systemd/system/`, run `sudo systemctl daemon-reload`, then enable and
+start both timers. They process one eligible month daily at 04:45 and 04:15
+UTC, respectively; `Persistent=true` catches a missed run after reboot.
+Check `systemctl list-timers 'waimea-*-archive.timer'` and service journals.
+The archive containers use VM service-account ADC and the private bucket;
+no JSON key or personal gcloud login is required.
+The protected `GET /internal/v1/datalake/revisions/{revision_id}` route
+retrieves full archived revision snapshots from the pinned GCS generation and
+checks both compressed SHA-256 and row metadata.
+
+Compaction keeps row IDs and audit search fields in Cloud SQL. PostgreSQL may
+retain allocated table/TOAST pages until vacuum or table rewrite; check live
+tuple size and reuse before considering a lock-heavy physical rewrite. Do not
+delete archive objects or the export metadata while DB pointers reference them.

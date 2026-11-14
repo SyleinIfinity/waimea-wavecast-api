@@ -53,6 +53,46 @@ services:
     mem_limit: 1536m
     cpus: 0.50
 
+  revision-archive:
+    <<: *worker
+    profiles: [archive]
+    command: python -m services.ingestion.scripts.archive_revisions --max-months 1
+    restart: "no"
+    mem_limit: 768m
+    cpus: 0.35
+
+  raw-archive:
+    <<: *worker
+    profiles: [archive]
+    command: python -m services.ingestion.scripts.archive_raw --max-months 1
+    restart: "no"
+    mem_limit: 768m
+    cpus: 0.35
+
+  forward-forecast:
+    <<: *worker
+    profiles: [forward]
+    command: python -m training.tl08c_forward_runner
+    restart: "no"
+    mem_limit: 768m
+    cpus: 0.25
+
+  calisthenics-replay:
+    <<: *worker
+    profiles: [calisthenics]
+    command: python -m training.calisthenics_v1 --horizon 1d
+    restart: "no"
+    mem_limit: 2048m
+    cpus: 0.75
+
+  calisthenics-shadow:
+    <<: *worker
+    profiles: [calisthenics]
+    command: python -m training.calisthenics_shadow
+    restart: "no"
+    mem_limit: 1024m
+    cpus: 0.35
+
   analysis:
     <<: *worker
     build:

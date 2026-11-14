@@ -29,7 +29,31 @@ def register_source_file(conn, item: SourceFileIn) -> dict:
 def upsert_raw_batch(conn, batch: RawBatch) -> dict:
     inserted = duplicate = 0
     raw_ids = {}
+    source = conn.execute(
+        "SELECT feed.feed_key FROM bronze.source_files f "
+        "JOIN bronze.source_feeds feed ON feed.feed_id=f.feed_id WHERE f.file_id=%s",
+        (batch.file_id,),
+    ).fetchone() if any(row.observed_at is not None for row in batch.rows) else None
+    if source is None and any(row.observed_at is not None for row in batch.rows):
+        raise ValueError("unknown source file")
     for row in batch.rows:
+        result = None
+        # Realtime NOAA files are rolling snapshots. The complete source bytes
+        # remain pinned in GCS; one PostgreSQL Raw row per identical reading is
+        # sufficient for Silver lineage. Serialize concurrent workers by key.
+        if source is not None and source["feed_key"] == "realtime" and row.observed_at is not None:
+            key = f"{row.station_id}:{row.observed_at.isoformat()}:{row.row_sha256}"
+            conn.execute("SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))", (key,))
+            result = conn.execute(
+                "SELECT raw_id FROM bronze.raw_observations "
+                "WHERE station_id=%s AND observed_at=%s AND row_sha256=%s "
+                "ORDER BY raw_id LIMIT 1",
+                (row.station_id, row.observed_at, row.row_sha256),
+            ).fetchone()
+            if result is not None:
+                duplicate += 1
+                raw_ids[row.row_sha256] = result["raw_id"]
+                continue
         values = row.model_dump(exclude_none=True)
         values["file_id"] = batch.file_id
         result = insert_row(

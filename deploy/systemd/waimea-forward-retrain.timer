@@ -1,0 +1,10 @@
+[Unit]
+Description=Check forward NOAA truth for weekly DRAFT retraining
+
+[Timer]
+OnCalendar=Sun *-*-* 04:00:00 UTC
+Persistent=true
+Unit=waimea-forward-retrain.service
+
+[Install]
+WantedBy=timers.target

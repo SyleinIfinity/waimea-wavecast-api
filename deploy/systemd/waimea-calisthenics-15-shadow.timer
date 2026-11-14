@@ -1,0 +1,11 @@
+[Unit]
+Description=Issue Calisthenics 1.5 shadow forecasts every five minutes
+
+[Timer]
+OnBootSec=4min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=waimea-calisthenics-15-shadow.service
+
+[Install]
+WantedBy=timers.target

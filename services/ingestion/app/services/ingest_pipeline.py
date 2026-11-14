@@ -364,6 +364,15 @@ def run_ingest(
         if checkpoint is not None:
             checkpoint({"status": "SILVER_APPLIED", "last_batch_offset": i + len(batch)})
 
+    if feed_key == "realtime":
+        try:
+            db_gateway.complete_source_file(file_id)
+        except AttributeError:
+            # Lightweight test gateways predating source completion.
+            pass
+        except Exception as exc:
+            result.error = f"Source completion failed: {exc}"
+            return result
     result.success = True
     logger.info(
         "Ingest complete: %s %s | raw(ins=%d dup=%d) silver(ins=%d rev=%d dup=%d) errors=%d",
