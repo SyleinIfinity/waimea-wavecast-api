@@ -16,7 +16,7 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-waimea_wavecast}
       POSTGRES_USER: ${POSTGRES_USER:-waimea}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-only-change-me}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD-}
     volumes:
       - postgres_dev:/var/lib/postgresql/data
     ports:
@@ -36,22 +36,106 @@ services:
   preprocessing:
     <<: *worker
     command: uvicorn services.preprocessing.app.main:app --host 0.0.0.0 --port 8000
+    mem_limit: 768m
+    cpus: 0.75
+
+  pipeline-scheduler:
+    <<: *worker
+    command: python -m services.scheduler.app.tl07b_runner
+    mem_limit: 256m
+    cpus: 0.25
+
+  observation-arrival-relay:
+    <<: *worker
+    image: waimea-wavecast-backend-database-api
+    profiles: [arrival-email]
+    command: python -m services.database_api.app.arrival_relay
+    mem_limit: 128m
+    cpus: 0.15
+
+  historical-backfill:
+    <<: *worker
+    profiles: [historical]
+    command: python -m services.ingestion.scripts.historical_backfill --max-files 1
+    restart: "no"
+    mem_limit: 1536m
+    cpus: 0.50
+
+  revision-archive:
+    <<: *worker
+    profiles: [archive]
+    command: python -m services.ingestion.scripts.archive_revisions --max-months 1
+    restart: "no"
+    mem_limit: 768m
+    cpus: 0.35
+
+  raw-archive:
+    <<: *worker
+    profiles: [archive]
+    command: python -m services.ingestion.scripts.archive_raw --max-months 1
+    restart: "no"
+    mem_limit: 768m
+    cpus: 0.35
+
+  forward-forecast:
+    <<: *worker
+    profiles: [forward]
+    command: python -m training.tl08c_forward_runner
+    restart: "no"
+    mem_limit: 768m
+    cpus: 0.25
+
+  calisthenics-replay:
+    <<: *worker
+    profiles: [calisthenics]
+    command: python -m training.calisthenics_v1 --horizon 1d
+    restart: "no"
+    mem_limit: 2048m
+    cpus: 0.75
+
+  calisthenics-shadow:
+    <<: *worker
+    profiles: [calisthenics]
+    command: python -m training.calisthenics_shadow
+    restart: "no"
+    mem_limit: 1024m
+    cpus: 0.35
 
   analysis:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/analysis/Dockerfile
     command: uvicorn services.analysis.app.main:app --host 0.0.0.0 --port 8000
 
   clustering:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/clustering/Dockerfile
     command: uvicorn services.clustering.app.main:app --host 0.0.0.0 --port 8000
 
   prediction:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/prediction/Dockerfile
     command: uvicorn services.prediction.app.main:app --host 0.0.0.0 --port 8000
 
   classification:
     <<: *worker
+    build:
+      context: .
+      dockerfile: services/classification/Dockerfile
     command: uvicorn services.classification.app.main:app --host 0.0.0.0 --port 8000
+
+  scheduler:
+    <<: *worker
+    profiles: [tl05-scheduler]
+    build:
+      context: .
+      dockerfile: services/scheduler/Dockerfile
+    command: python -m services.scheduler.app.runner
 
 networks:
   waimea-internal:

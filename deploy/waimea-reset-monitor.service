@@ -1,0 +1,17 @@
+[Unit]
+Description=Waimea production reset observer (read-only, until 08:00 Vietnam time 19 Nov 2026)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mcadmin
+Group=mcadmin
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/python3 /home/mcadmin/projects/waimea-wavecast-api/ops/monitor_production_reset.py
+Restart=on-failure
+RestartSec=30
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

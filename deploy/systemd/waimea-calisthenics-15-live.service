@@ -1,0 +1,11 @@
+[Unit]
+Description=Waimea Calisthenics 1.5 controlled 300-pair NOAA update
+Wants=network-online.target
+After=network-online.target docker.service waimea-wavecast-api.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile calisthenics run --rm --no-deps calisthenics-replay python -m training.calisthenics_15 watch
+TimeoutStartSec=300

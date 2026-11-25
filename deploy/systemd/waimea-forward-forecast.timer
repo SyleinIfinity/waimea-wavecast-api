@@ -1,0 +1,11 @@
+[Unit]
+Description=Issue and evaluate forward NOAA forecasts every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Persistent=true
+Unit=waimea-forward-forecast.service
+
+[Install]
+WantedBy=timers.target

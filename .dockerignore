@@ -5,5 +5,8 @@
 .terraform/
 notebooks/
 tests/
-docs/
+docs/*
+!docs/contributions/
+docs/contributions/*
+!docs/contributions/TL07-B_HISTORY_COVERAGE.json
 artifacts/

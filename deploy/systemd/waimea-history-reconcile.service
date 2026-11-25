@@ -1,0 +1,12 @@
+[Unit]
+Description=Waimea NOAA historical archive reconciliation (one bounded source)
+Wants=network-online.target
+After=network-online.target docker.service waimea-wavecast-api.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mcadmin/projects/waimea-wavecast-api
+ExecStart=/usr/bin/docker compose --env-file .env.production -f compose.yaml -f deploy/compose.prod.yaml --profile historical run --rm --no-deps historical-backfill python -m services.ingestion.scripts.scheduled_history_reconcile
+TimeoutStartSec=3600
+

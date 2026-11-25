@@ -1,0 +1,44 @@
+[
+  {
+    "name": "TL08-B_NEXT_DAY_RESULTS.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_NEXT_DAY_RESULTS.json",
+    "generation": "1794544204466673",
+    "sha256": "fd324b29d6e61dc0e9429b79666c5a929828bd7409053809d011576ba00514d6"
+  },
+  {
+    "name": "TL08-B_DAILY_HORIZON_RESULTS.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_DAILY_HORIZON_RESULTS.json",
+    "generation": "1794544204600581",
+    "sha256": "226aa6decc769c9504c708ae5a0d3fb26dba9e287428389d5243eabcc83e73e5"
+  },
+  {
+    "name": "TL08-B_SHORT_HORIZON_RESULTS.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_SHORT_HORIZON_RESULTS.json",
+    "generation": "1794544204801187",
+    "sha256": "1c9fca88521e68cbcd62140e7f2530c0e611a446cc55a744af57ff64cf34aa29"
+  },
+  {
+    "name": "TL08-B_24H_RESULTS.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_24H_RESULTS.json",
+    "generation": "1794544204979122",
+    "sha256": "9b66d4c6e6dd5bb6c06c13c0df4b162cfd00381d09c7eac0e8c02a9f36026303"
+  },
+  {
+    "name": "TL08-B_WALKFORWARD_RESULTS.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_WALKFORWARD_RESULTS.json",
+    "generation": "1794544205119037",
+    "sha256": "f75bc87f05c38ff6eeba90fd317493663bfeb553e096fb7a84bb6355a2d644b3"
+  },
+  {
+    "name": "TL08-B_CLUSTER_ASSIGNMENTS.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_CLUSTER_ASSIGNMENTS.json",
+    "generation": "1794544205263264",
+    "sha256": "40620199c0d67113dcb1d633d1bf6e278b4cd0ba632cc6a358ff40fdb0195a97"
+  },
+  {
+    "name": "TL08-B_CLASSIFICATION_BASELINES.json",
+    "gcs_uri": "gs://waimea-noaa/training/reports/tl08b/tl08b-20261113-v1/TL08-B_CLASSIFICATION_BASELINES.json",
+    "generation": "1794544317954815",
+    "sha256": "32e9577bd30f81978a78c70f6bc14d2e7be75d19c31b2be9f969fa81cc6f595e"
+  }
+]

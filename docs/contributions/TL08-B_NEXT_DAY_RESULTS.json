@@ -1,0 +1,76 @@
+{
+  "dataset_split_ids": {
+    "regression": 8,
+    "classification": 9,
+    "clustering": 10
+  },
+  "synthetic_fixture": false,
+  "dataset_sha256": "d18d56980c08c2bae22fcca0e76bd1f0157f9810767c6c21d53517f47592645e",
+  "source_manifest_sha256": "2783dde516d02d1961b286c60a97e817618006f2d2224105b9d5304180f8d08e",
+  "models": {
+    "regression": {
+      "model_id": 8,
+      "metrics": {
+        "sample_count": 745,
+        "mae": 0.2640126174496644,
+        "rmse": 0.39173598908057905,
+        "r2_score": 0.6453731415156879,
+        "additional_metrics": {
+          "baseline": {
+            "sample_count": 745,
+            "mae": 0.2736510067114094,
+            "rmse": 0.42979954747150606,
+            "r2_score": 0.5731094038992683
+          },
+          "unit": "m",
+          "synthetic_fixture": false
+        }
+      }
+    },
+    "classification": {
+      "model_id": 9,
+      "metrics": {
+        "sample_count": 745,
+        "accuracy": 0.7181208053691275,
+        "f1_macro": 0.7159626985492133,
+        "additional_metrics": {
+          "confusion_matrix": [
+            [
+              229,
+              58,
+              1
+            ],
+            [
+              58,
+              141,
+              48
+            ],
+            [
+              7,
+              38,
+              165
+            ]
+          ],
+          "labels": [
+            "low",
+            "medium",
+            "high"
+          ],
+          "synthetic_fixture": false
+        }
+      }
+    },
+    "clustering": {
+      "model_id": 10,
+      "metrics": {
+        "sample_count": 3476,
+        "silhouette_score": 0.2688754198087301,
+        "davies_bouldin_score": 1.3941052992453586,
+        "additional_metrics": {
+          "k": 2
+        },
+        "calinski_harabasz_score": 1668.6719947583188
+      }
+    }
+  }
+}

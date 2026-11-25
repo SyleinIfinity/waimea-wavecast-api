@@ -1,0 +1,1 @@
+{"model_id": 10, "assignment_count": 5160, "gcs_uri": "gs://waimea-noaa/training/clusters/model=10/assignments-4eed31a19d1925c4bbf80cb7ca5e882bfb404d8d3e91214c3f96bf068b83767c.json", "gcs_generation": "1794544158682544", "sha256": "4eed31a19d1925c4bbf80cb7ca5e882bfb404d8d3e91214c3f96bf068b83767c", "processing_run_id": 2}

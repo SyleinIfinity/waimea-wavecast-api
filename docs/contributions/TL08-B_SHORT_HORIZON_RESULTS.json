@@ -1,0 +1,89 @@
+[
+  {
+    "horizon": "30min",
+    "model_id": 13,
+    "sample_count": 12619,
+    "train": 8795,
+    "validation": 1897,
+    "test": 1925,
+    "dataset_sha256": "c6c7b32352702b487b53f0898f760aefa4ef38493d0ce38ec6a92ada1d56688e",
+    "source_manifest_sha256": "2783dde516d02d1961b286c60a97e817618006f2d2224105b9d5304180f8d08e",
+    "model": {
+      "sample_count": 1925,
+      "mae": 0.08475210389610392,
+      "rmse": 0.11486068254544374,
+      "r2_score": 0.9615386944685377
+    },
+    "persistence": {
+      "sample_count": 1925,
+      "mae": 0.08462337662337663,
+      "rmse": 0.12114175446692473,
+      "r2_score": 0.9572172245882803
+    },
+    "train_mean": {
+      "sample_count": 1925,
+      "mae": 0.46276995813737143,
+      "rmse": 0.5898280471666559,
+      "r2_score": -0.014219780764779033
+    },
+    "readiness": "NOT_READY"
+  },
+  {
+    "horizon": "1h",
+    "model_id": 14,
+    "sample_count": 12615,
+    "train": 8792,
+    "validation": 1895,
+    "test": 1924,
+    "dataset_sha256": "ff47e0c1a3546131afd690c58848caf2ca618844c299f1d5922d0d1880502b43",
+    "source_manifest_sha256": "2783dde516d02d1961b286c60a97e817618006f2d2224105b9d5304180f8d08e",
+    "model": {
+      "sample_count": 1924,
+      "mae": 0.09657474012474015,
+      "rmse": 0.13230420126963724,
+      "r2_score": 0.948945266919265
+    },
+    "persistence": {
+      "sample_count": 1924,
+      "mae": 0.09381496881496883,
+      "rmse": 0.1348171935462079,
+      "r2_score": 0.9469873756620119
+    },
+    "train_mean": {
+      "sample_count": 1924,
+      "mae": 0.46222165917229613,
+      "rmse": 0.5896358565845274,
+      "r2_score": -0.014043325633856352
+    },
+    "readiness": "NOT_READY"
+  },
+  {
+    "horizon": "6h",
+    "model_id": 15,
+    "sample_count": 12577,
+    "train": 8764,
+    "validation": 1875,
+    "test": 1914,
+    "dataset_sha256": "3d40284c8179306b3301cff2b2d98be9ff9453d725cf9c6ede2cc9baffca635e",
+    "source_manifest_sha256": "2783dde516d02d1961b286c60a97e817618006f2d2224105b9d5304180f8d08e",
+    "model": {
+      "sample_count": 1914,
+      "mae": 0.19190851619644722,
+      "rmse": 0.2782009548135001,
+      "r2_score": 0.7733952162797666
+    },
+    "persistence": {
+      "sample_count": 1914,
+      "mae": 0.1755485893416928,
+      "rmse": 0.2502245595430974,
+      "r2_score": 0.8166792150006101
+    },
+    "train_mean": {
+      "sample_count": 1914,
+      "mae": 0.4595572034736957,
+      "rmse": 0.5878372906498274,
+      "r2_score": -0.011733446214772902
+    },
+    "readiness": "NOT_READY"
+  }
+]

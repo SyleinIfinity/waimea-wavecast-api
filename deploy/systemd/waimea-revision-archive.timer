@@ -1,0 +1,10 @@
+[Unit]
+Description=Archive one old Waimea revision month per day
+
+[Timer]
+OnCalendar=*-*-* 04:15:00 UTC
+Persistent=true
+Unit=waimea-revision-archive.service
+
+[Install]
+WantedBy=timers.target
