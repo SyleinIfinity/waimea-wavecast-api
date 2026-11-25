@@ -45,6 +45,14 @@ services:
     mem_limit: 256m
     cpus: 0.25
 
+  observation-arrival-relay:
+    <<: *worker
+    image: waimea-wavecast-backend-database-api
+    profiles: [arrival-email]
+    command: python -m services.database_api.app.arrival_relay
+    mem_limit: 128m
+    cpus: 0.15
+
   historical-backfill:
     <<: *worker
     profiles: [historical]

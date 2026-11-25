@@ -9,6 +9,8 @@ services:
     env_file: [ .env.production ]
   pipeline-scheduler:
     env_file: [ .env.production ]
+  observation-arrival-relay:
+    env_file: [ .env.production ]
   historical-backfill:
     env_file: [ .env.production ]
   revision-archive:

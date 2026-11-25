@@ -12,6 +12,26 @@
 5. Ubuntu Compute Engine VM attached to the VPC and workload service account.
 6. Docker Engine + Compose plugin; clone backend repo onto VM.
 7. `cp .env.production.example .env.production`, fill `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_SSLMODE=require`; keep every `GCS_*_BUCKET` and `GCS_BUCKET` set to `waimea-noaa`. Protect the file with `chmod 600 .env.production`. Keep `DATABASE_API_URL=http://database-api:8000` for workers.
+
+### Observation reset from the Admin page
+
+Set `CLUSTER_REBUILD_MODEL_ID` in the production environment file to the pinned K-means model used to restore the dashboard. Use `0` to disable recovery. After reset clears the pipeline cycle ledger and cluster assignments, the scheduler downloads NOAA data, rebuilds Silver daily features, and requests K-means reconciliation after each successful cycle. It uses up to 60 closed Hawaii days for the dashboard, with six earlier days available for the feature window. Each assignment requires seven consecutive days of observed data with at least 90% daily coverage and no suspect, rejected, unverified, or imputed values. The model artifact is verified against its GCS generation and checksum. Existing matching assignments are reused. Failures are logged and retried after the next successful cycle. The Admin API returns `kmeans_recovery.status` to indicate whether recovery is scheduled.
+
+The Admin page uses `X-Admin-Token` to call `POST /api/v1/admin/demo/observations/preview-reset`, then `POST /api/v1/admin/demo/observations/reset` with the returned one-use ticket and `RESET PRODUCTION OBSERVATIONS`. This path requires operator confirmation of a previously verified backup. The ticket expires after five minutes, and the reset rejects a change in table counts after preview.
+
+### Backup-protected reset and restore in private Swagger
+
+For automatic backups, use the backend Swagger UI over an SSH tunnel to the Database API's loopback port `8000`. For example, run `ssh -N -L 8088:127.0.0.1:8000 mcadmin@136.85.0.193` and open `http://localhost:8088/private/docs`. The `/private/admin/observations/` routes use the direct tunnel and require `X-Admin-Token` and the production reset password for write operations. Public Nginx does not proxy those routes.
+
+1. Call `POST /private/admin/observations/preview-reset` to get the counts and a one-use ticket for this route group.
+2. Call `POST /private/admin/observations/backup-and-reset` with `dry_run_id`, `confirmation` set to `RESET PRODUCTION OBSERVATIONS` and the production reset `password`. The API locks the reset scope, uploads the ZIP to `GCS_BACKUP_BUCKET` and checks SHA-256 on the pinned generation. Only after verification does it truncate the tables and commit the backup record. A failed upload or verification leaves the data intact. The response includes the backup ID, URI, generation and checksum.
+3. Call `POST /private/admin/observations/restore-latest` with `confirmation` set to `RESTORE LATEST OBSERVATIONS` and the production reset `password`. Restore selects the latest successful automatic reset snapshot and replaces the same scoped tables in a transaction. If new rows are present, the API creates and verifies a separate safety backup and returns its ID. Optionally supply a `backup_id` to select a registered snapshot in the same environment, including that safety backup.
+
+Apply `database/migrations/18_observation_reset_backups.sql` after migration 17 before running this version. The Database API service account needs object create and read permissions on the backup bucket. Newly created snapshots use `backups/observation-reset/<environment>/<database>/` and are recorded in `gold.observation_reset_backups`. Existing operator-managed PostgreSQL dumps can still be restored using PostgreSQL tools.
+
+Both reset paths affect only the observation-derived tables. The catalogs, source-file manifests, model registry and training evidence remain available. PostgreSQL validates foreign keys during restore, while the restore transaction skips application triggers for revision auditing and arrival email.
+
+Production reset is disabled by default. The production actions require `OBSERVATION_RESET_PRODUCTION_ENABLED=true`, `APP_ENV=production`, `DB_NAME=waimea_wavecast`, and `DB_HOST=dbwaimea.liems.io.vn`. Set `OBSERVATION_RESET_PASSWORD_SHA256` to the SHA-256 digest of the separately configured reset password. The legacy Admin page additionally requires `OBSERVATION_RESET_PRODUCTION_BACKUP_CONFIRMED=true` after verifying a restorable backup and its database target. Apply settings changes by recreating only `database-api`. Return the enablement flags to `false` after the reset window.
 8. Confirm the VM resolves `dbwaimea.liems.io.vn` and can reach TCP 5432. Configure private routing or restricted authorized networks for the address actually used. Test a read-only PostgreSQL connection with TLS before deployment.
 9. Confirm a restorable Cloud SQL backup. Apply additive migrations `04_tl07b_quality_gold.sql` through `10_tl08a_publications.sql` in numeric order with `psql -v ON_ERROR_STOP=1` before deploying images. `sudo bash deploy/scripts/deploy.sh` validates Compose, builds Database API, Ingestion, Preprocessing and the scheduler, starts them, then checks readiness.
 10. Host Nginx: use `deploy/nginx/apiwaimea.conf`, DNS A to static VM IP; issue TLS with Certbot after HTTP DNS works.
@@ -157,6 +177,18 @@ HTTPS API URL to avoid browser mixed-content blocking.
 For the experimental forecast response, pending actual values, and which
 future Backend changes require frontend work, see the forecast section in
 `docs/api-contract.md`.
+
+### S03 full-history time series
+
+`GET /api/v1/analytics/time-series/overview` accepts timezone-aware `start`
+and `end`, `metric=WVHT|DPD|APD|MWD|WTMP`, and `qc_only=true|false`.
+It reads canonical Silver rows and returns UTC day/week/month means and medians,
+full-range observation counts and a WVHT histogram. The WVHT/DPD scatter is
+sampled evenly to at most 1,500 points; `scatter.total_pairs` reports the full
+count. Null metrics are excluded from their summaries. The query is read-only,
+bounded to 9,000 days, and does not require the currently empty
+`gold.time_series_metrics` table. The frontend's “Toàn bộ lịch sử” selection
+starts at 2004-09-08. No schema migration or model job is required.
 
 ## TL08-B model training checkpoint
 

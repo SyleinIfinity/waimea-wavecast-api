@@ -33,10 +33,12 @@ def page(rows, limit: int, cursor_key: str | None = None):
     return {"status": "ok" if data else "empty", "data": json_safe(data), "has_more": more, "next_cursor": cursor}
 
 
-def require_window(request: Request, start: date | datetime, end: date | datetime):
+def require_window(request: Request, start: date | datetime, end: date | datetime, *, max_days: int | None = None):
     if isinstance(start, datetime) and (start.tzinfo is None or end.tzinfo is None):
         raise HTTPException(422, "UTC offset required")
-    if end < start or (end - start).days > request.app.state.settings.max_query_days:
+    if max_days is None:
+        max_days = request.app.state.settings.max_query_days
+    if end < start or (end - start).days > max_days:
         raise HTTPException(422, "invalid or oversized time window")
 
 
@@ -59,16 +61,22 @@ def latest_observation(request: Request):
 
 
 @router.get("/observations")
-def observations(request: Request, start: datetime, end: datetime, limit: int = Query(100, ge=1, le=1000), cursor: datetime | None = None):
+def observations(request: Request, start: datetime, end: datetime, limit: int = Query(100, ge=1, le=1000),
+                 cursor: datetime | None = None, layer: Literal["silver", "bronze"] = "silver"):
     if start.tzinfo is None or end.tzinfo is None or (cursor is not None and cursor.tzinfo is None):
         raise HTTPException(422, "UTC offset required")
     require_window(request, start, end)
+    query = "SELECT s.* FROM silver.wave_observations s"
+    if layer == "bronze":
+        query = (
+            "SELECT s.station_id, s.observed_at, s.source_kind, r.raw_line "
+            "FROM silver.wave_observations s JOIN bronze.raw_observations r USING (raw_id)"
+        )
     with db(request).connection() as conn:
         rows = conn.execute(
-            "SELECT * FROM silver.wave_observations WHERE station_id='51201' AND observed_at >= %s "
-            "AND observed_at <= %s AND (%s::timestamptz IS NULL OR observed_at < %s) "
-            "ORDER BY observed_at DESC LIMIT %s",
-            (start, end, cursor, cursor, limit + 1),
+            query + " WHERE s.station_id='51201' AND s.observed_at >= %s "
+            "AND s.observed_at <= %s AND (%s::timestamptz IS NULL OR s.observed_at < %s) "
+            "ORDER BY s.observed_at DESC LIMIT %s", (start, end, cursor, cursor, limit + 1),
         ).fetchall()
     return page(rows, limit, "observed_at")
 
@@ -91,7 +99,8 @@ def trend(request: Request, metric: str = "WVHT", period: Literal["week", "month
         raise HTTPException(422, "unknown metric")
     end_hst = end_hst or datetime.now(ZoneInfo("Pacific/Honolulu")).date()
     start_hst = start_hst or end_hst - timedelta(days=365)
-    require_window(request, start_hst, end_hst)
+    # Monthly results are precomputed. Five years still fits in the default page.
+    require_window(request, start_hst, end_hst, max_days=1830 if period == "month" else None)
     with db(request).connection() as conn:
         rows = conn.execute("SELECT * FROM gold.trend_seasonal_components WHERE station_id='51201' AND metric_code=%s AND period_type=%s AND period_start_hst BETWEEN %s AND %s ORDER BY period_start_hst DESC LIMIT %s", (metric, period, start_hst, end_hst, limit + 1)).fetchall()
     return page(rows, limit, "period_start_hst")
@@ -145,7 +154,15 @@ def scatter(request: Request, x: str = "WVHT", y: str = "DPD", start: datetime |
 def clusters(request: Request, start_hst: date, end_hst: date, limit: int = Query(100, ge=1, le=1000)):
     require_window(request, start_hst, end_hst)
     with db(request).connection() as conn:
-        rows = conn.execute("SELECT a.*, c.cluster_name, c.centroid_features FROM gold.cluster_assignments a JOIN gold.cluster_centroids c USING(model_id,cluster_label) WHERE a.station_id='51201' AND a.date_hst BETWEEN %s AND %s ORDER BY a.date_hst DESC LIMIT %s", (start_hst, end_hst, limit + 1)).fetchall()
+        rows = conn.execute("""
+            SELECT a.*, c.cluster_name, c.centroid_features,
+                   d.median_wave_height_m, d.mean_dominant_period_s
+            FROM gold.cluster_assignments a
+            JOIN gold.cluster_centroids c USING (model_id, cluster_label)
+            JOIN silver.daily_wave_features d ON d.station_id=a.station_id AND d.date_hst=a.date_hst
+            WHERE a.station_id='51201' AND a.date_hst BETWEEN %s AND %s
+            ORDER BY a.date_hst DESC, a.model_id DESC LIMIT %s
+        """, (start_hst, end_hst, limit + 1)).fetchall()
     return page(rows, limit, "date_hst")
 
 
@@ -171,9 +188,21 @@ def prediction_history(request: Request, start_hst: date, end_hst: date, limit: 
 
 
 @router.get("/classifications/latest")
-def latest_classification(request: Request):
+def latest_classification(request: Request, include_draft: bool = False):
+    settings = request.app.state.settings
+    show_draft = include_draft and settings.app_env == "development" and settings.local_draft_classification_enabled
     with db(request).connection() as conn:
-        return item(conn.execute("SELECT * FROM gold.v_latest_classifications WHERE station_id='51201' ORDER BY issued_at DESC LIMIT 1").fetchone())
+        row = conn.execute("""
+            SELECT c.classification_id,c.station_id,c.model_id,c.scheme_id,c.target_date_hst,
+                c.issued_at,c.predicted_label,c.confidence,c.class_probabilities,c.feature_cutoff_date_hst,
+                m.model_name,m.model_version,m.status AS model_status,m.algorithm,
+                CASE WHEN c.target_date_hst > (c.issued_at AT TIME ZONE 'Pacific/Honolulu')::date
+                     THEN 'prospective' ELSE 'retrospective' END AS evidence_mode
+            FROM gold.classifications c JOIN gold.model_registry m USING (model_id)
+            WHERE c.station_id='51201' AND (m.status='ready' OR (%s AND m.status='draft'))
+            ORDER BY c.issued_at DESC,c.classification_id DESC LIMIT 1
+        """, (show_draft,)).fetchone()
+    return item(row)
 
 
 @router.get("/classifications/schemes")

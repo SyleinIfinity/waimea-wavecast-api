@@ -10,6 +10,8 @@ from psycopg import Error as PostgresError
 from psycopg_pool import PoolTimeout
 
 from services.database_api.app.api.admin import router as admin_router
+from services.database_api.app.api.demo_observation_reset import router as demo_observation_reset_router
+from services.database_api.app.api.demo_observation_reset import private_router as observation_backups_router
 from services.database_api.app.api.internal import router as internal_router
 from services.database_api.app.api.pipeline import router as pipeline_router
 from services.database_api.app.api.derived import router as derived_router
@@ -17,6 +19,7 @@ from services.database_api.app.api.datalake import router as datalake_router
 from services.database_api.app.api.public import router as public_router
 from services.database_api.app.api.forward import router as forward_router, public_router as forward_public_router
 from services.database_api.app.api.calisthenics_shadow import router as shadow_public_router
+from services.database_api.app.api.time_series import router as time_series_router
 from services.database_api.app.config import Settings, get_settings
 from services.database_api.app.db.session import Database
 
@@ -53,9 +56,12 @@ def create_app(settings: Settings | None = None, database: Database | None = Non
     app.include_router(derived_router)
     app.include_router(datalake_router)
     app.include_router(admin_router)
+    app.include_router(demo_observation_reset_router)
+    app.include_router(observation_backups_router)
     app.include_router(forward_router)
     app.include_router(forward_public_router)
     app.include_router(shadow_public_router)
+    app.include_router(time_series_router)
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):

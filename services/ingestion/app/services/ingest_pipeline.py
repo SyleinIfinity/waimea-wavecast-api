@@ -140,6 +140,7 @@ def run_ingest(
     checkpoint: Callable[[dict], None] | None = None,
     source_bytes: bytes | None = None,
     resume_offset: int = 0,
+    not_before_utc: datetime | None = None,
 ) -> IngestResult:
     """
     Execute the full ingestion SAGA for one (feed_key, year[, month]) period.
@@ -219,6 +220,13 @@ def run_ingest(
     if not parse_result.rows:
         result.error = "NOAA payload contained no valid observations"
         return result
+    if not_before_utc is not None:
+        if feed_key != "realtime" or not_before_utc.tzinfo is None:
+            raise ValueError("bounded demo ingest requires realtime and aware cutoff")
+        parse_result.rows = [row for row in parse_result.rows if row.observed_at >= not_before_utc]
+        if not parse_result.rows:
+            result.success = True
+            return result  # successful poll; NOAA has not published a post-reset observation
     result.latest_observed_at = max(row.observed_at for row in parse_result.rows)
     result.earliest_observed_at = min(row.observed_at for row in parse_result.rows)
     result.source_row_count = len(parse_result.rows)

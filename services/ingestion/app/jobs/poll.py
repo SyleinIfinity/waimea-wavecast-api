@@ -45,6 +45,7 @@ def run_poll(
     gcs_client: GCSClientProtocol | None = None,
     db_gateway: DatabaseGateway | None = None,
     bucket: str = "waimea-noaa",
+    not_before_utc: datetime | None = None,
 ) -> PollResult:
     """
     Execute one realtime poll cycle.
@@ -64,6 +65,7 @@ def run_poll(
         gcs_client=gcs_client,
         db_gateway=db_gateway,
         bucket=bucket,
+        not_before_utc=not_before_utc,
     )
 
     is_empty = result.success and result.silver_inserted == 0 and result.silver_revised == 0

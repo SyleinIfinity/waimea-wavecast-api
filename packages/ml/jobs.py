@@ -68,15 +68,22 @@ def run_analysis(gateway: MLGateway, kind: str, start: date, end: date, key: str
         raise
 
 
-def run_inference(gateway: MLGateway, store: ModelStore, kind: str, cutoff: date, key: str) -> dict:
+def run_inference(gateway: MLGateway, store: ModelStore, kind: str, cutoff: date, key: str,
+                  *, local_draft_model: dict | None = None) -> dict:
     task = {"predictions": "regression", "classifications": "classification", "cluster_assignments": "clustering"}.get(kind)
     if task is None:
         raise ValueError("invalid inference task")
+    if local_draft_model is not None and (
+        task != "classification" or local_draft_model["status"] != "draft"
+        or local_draft_model["task_type"] != "classification"
+        or cutoff >= datetime.now(HST).date()
+    ):
+        raise ValueError("local DRAFT classification requires a completed Hawaiian day")
     job_id, completed = _job(gateway, kind, cutoff, cutoff + timedelta(days=1), key)
     if completed:
         return {"processing_run_id": job_id, "status": "success", "duplicate": True}
     try:
-        metadata = gateway.get_ready_model(task)
+        metadata = local_draft_model if local_draft_model is not None else gateway.get_ready_model(task)
         if metadata is None:
             gateway.update_job(job_id, "skipped", error="model_unavailable")
             return {"processing_run_id": job_id, "status": "insufficient_data", "reason": "model_unavailable"}
@@ -84,6 +91,12 @@ def run_inference(gateway: MLGateway, store: ModelStore, kind: str, cutoff: date
         if manifest.get("feature_names") != list(FEATURE_NAMES):
             raise ValueError("model feature order mismatch")
         daily = gateway.get_daily_features(cutoff - timedelta(days=6), cutoff)
+        if local_draft_model is not None:
+            if manifest.get("synthetic_fixture") is not False:
+                raise ValueError("local DRAFT classification needs a model trained on real observations")
+            daily = [row for row in daily if (row.get("coverage_ratio") or 0) >= 0.9
+                     and not any(row.get(key) for key in
+                                 ("suspect_count", "rejected_count", "unverified_count", "imputed_count"))]
         samples = [sample for sample in build_samples(daily, require_target=False) if sample.anchor_date_hst == cutoff]
         if not samples:
             gateway.update_job(job_id, "skipped", error="daily_features_incomplete")

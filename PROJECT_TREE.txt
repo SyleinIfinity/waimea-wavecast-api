@@ -1,35 +1,107 @@
-waimea-wavecast-backend/
+waimea-wavecast-api/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml
 │       └── deploy-compute-engine.example.yml
-├── artifacts/
-│   ├── models/
-│   │   └── .gitkeep
-│   ├── processed/
-│   │   └── .gitkeep
-│   └── raw/
-│       └── .gitkeep
+├── .vscode/
+│   └── settings.json
 ├── database/
 │   ├── migrations/
-│   │   └── 001_init.sql
+│   │   ├── 001_init.sql
+│   │   ├── 01_init_full.sql
+│   │   ├── 02_upgrade_from_v1.sql
+│   │   ├── 03_verify.sql
+│   │   ├── 04_tl07b_quality_gold.sql
+│   │   ├── 05_tl07b_cycles.sql
+│   │   ├── 06_tl07b_latest_valid.sql
+│   │   ├── 07_tl07b_derived_candidates.sql
+│   │   ├── 08_tl07b_gold_signals.sql
+│   │   ├── 09_tl08a_exports.sql
+│   │   ├── 10_tl08a_publications.sql
+│   │   ├── 11_tl08c_forward_forecasts.sql
+│   │   ├── 12_tl08c_training_lead_policy.sql
+│   │   ├── 13_calisthenics_shadow.sql
+│   │   ├── 14_raw_snapshot_dedup.sql
+│   │   ├── 15_revision_payload_archives.sql
+│   │   ├── 16_raw_fk_lookup_indexes.sql
+│   │   ├── 17_observation_arrival_email.sql
+│   │   └── 18_observation_reset_backups.sql
 │   └── README.md
 ├── deploy/
+│   ├── cloud-run/
+│   │   └── observation-arrival-email/
+│   │       ├── Dockerfile
+│   │       ├── README.md
+│   │       ├── main.py
+│   │       └── requirements.txt
 │   ├── nginx/
 │   │   └── apiwaimea.conf
 │   ├── scripts/
 │   │   ├── backup.md
+│   │   ├── check-production.py
 │   │   ├── deploy.sh
 │   │   └── health-check.sh
-│   └── compose.prod.yaml
+│   ├── systemd/
+│   │   ├── waimea-backend-watchdog.service
+│   │   ├── waimea-backend-watchdog.timer
+│   │   ├── waimea-calisthenics-15-live.service
+│   │   ├── waimea-calisthenics-15-live.timer
+│   │   ├── waimea-calisthenics-15-shadow.service
+│   │   ├── waimea-calisthenics-15-shadow.timer
+│   │   ├── waimea-forward-forecast.service
+│   │   ├── waimea-forward-forecast.timer
+│   │   ├── waimea-forward-retrain.service
+│   │   ├── waimea-forward-retrain.timer
+│   │   ├── waimea-history-reconcile.service
+│   │   ├── waimea-history-reconcile.timer
+│   │   ├── waimea-raw-archive.service
+│   │   ├── waimea-raw-archive.timer
+│   │   ├── waimea-revision-archive.service
+│   │   ├── waimea-revision-archive.timer
+│   │   └── waimea-wavecast-api.service
+│   ├── compose.prod.yaml
+│   ├── compose.vm.yaml
+│   └── waimea-reset-monitor.service
 ├── docs/
+│   ├── contributions/
+│   │   ├── CALISTHENICS_15_SHADOW_300.md
+│   │   ├── CALISTHENICS_1_0_CHRONOLOGICAL_REPLAY.md
+│   │   ├── CALISTHENICS_1_5_2026_CONTINUATION.md
+│   │   ├── DB_RETENTION_20261114.md
+│   │   ├── TL01_FUNCTIONS.md
+│   │   ├── TL01_STATUS.md
+│   │   ├── TL04_FUNCTIONS.md
+│   │   ├── TL04_STATUS.md
+│   │   ├── TL05_FUNCTIONS.md
+│   │   ├── TL05_STATUS.md
+│   │   ├── TL06_REAL_NOAA_INGESTION_INTEGRATION.md
+│   │   ├── TL07-A_ALGORITHM_ENHANCEMENT.md
+│   │   ├── TL07-B_AUTOMATED_DATA_PIPELINE.md
+│   │   ├── TL07-B_HISTORY_COVERAGE.json
+│   │   ├── TL08-A_COVERAGE.json
+│   │   ├── TL08-A_HISTORICAL_BACKFILL_AND_GCS_DATA_LAKE.md
+│   │   ├── TL08-A_MANIFEST_RESULTS.jsonl
+│   │   ├── TL08-A_REPEAT_RUN.jsonl
+│   │   ├── TL08-B_24H_RESULTS.json
+│   │   ├── TL08-B_CLASSIFICATION_BASELINES.json
+│   │   ├── TL08-B_CLUSTER_ASSIGNMENTS.json
+│   │   ├── TL08-B_DAILY_HORIZON_RESULTS.json
+│   │   ├── TL08-B_GCS_EVIDENCE.json
+│   │   ├── TL08-B_MODEL_TRAINING_AND_VALIDATION.md
+│   │   ├── TL08-B_NEXT_DAY_RESULTS.json
+│   │   ├── TL08-B_SHORT_HORIZON_RESULTS.json
+│   │   ├── TL08-B_WALKFORWARD_RESULTS.json
+│   │   ├── TL08-C_90MIN_SOURCE_MODEL.json
+│   │   └── TL08-C_AUTOMATED_FORECASTING_AND_EVALUATION.md
 │   ├── api-contract.md
 │   ├── architecture.md
 │   ├── demo-checklist.md
 │   ├── deployment.md
-│   └── implementation-roadmap.md
+│   ├── implementation-roadmap.md
+│   └── tl07a_quality_policy.example.json
 ├── infra/
 │   └── terraform/
+│       ├── README.md
 │       ├── cloud_sql.tf
 │       ├── compute.tf
 │       ├── firewall.tf
@@ -38,96 +110,188 @@ waimea-wavecast-backend/
 │       ├── network.tf
 │       ├── outputs.tf
 │       ├── providers.tf
-│       ├── README.md
 │       ├── storage.tf
 │       └── variables.tf
-├── notebooks/
-│   ├── 01_api_exploration/
-│   │   └── .gitkeep
-│   ├── 02_eda/
-│   │   └── .gitkeep
-│   ├── 03_clustering/
-│   │   └── .gitkeep
-│   ├── 04_prediction/
-│   │   └── .gitkeep
-│   └── 05_classification/
-│       └── .gitkeep
+├── ops/
+│   └── monitor_production_reset.py
+├── packages/
+│   ├── common/
+│   │   ├── __init__.py
+│   │   ├── errors.py
+│   │   └── time.py
+│   ├── db/
+│   │   ├── __init__.py
+│   │   ├── fake.py
+│   │   ├── gateway.py
+│   │   └── http.py
+│   ├── gcs/
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   └── local.py
+│   │   ├── __init__.py
+│   │   ├── client.py
+│   │   ├── fake.py
+│   │   └── paths.py
+│   ├── ml/
+│   │   ├── __init__.py
+│   │   ├── analytics.py
+│   │   ├── artifacts.py
+│   │   ├── data_quality.py
+│   │   ├── features.py
+│   │   ├── forecast.py
+│   │   ├── gateway.py
+│   │   ├── imputation.py
+│   │   ├── jobs.py
+│   │   ├── metrics.py
+│   │   ├── timeseries.py
+│   │   └── worker.py
+│   ├── noaa/
+│   │   ├── __init__.py
+│   │   ├── client.py
+│   │   ├── hash.py
+│   │   ├── normalize.py
+│   │   ├── parser.py
+│   │   ├── priority.py
+│   │   └── urls.py
+│   └── __init__.py
 ├── services/
 │   ├── analysis/
 │   │   ├── app/
-│   │   │   ├── patterns/
-│   │   │   │   └── .gitkeep
 │   │   │   ├── __init__.py
 │   │   │   └── main.py
-│   │   ├── tests/
-│   │   │   └── .gitkeep
+│   │   ├── Dockerfile
 │   │   └── README.md
 │   ├── classification/
 │   │   ├── app/
-│   │   │   ├── inference/
-│   │   │   │   └── .gitkeep
 │   │   │   ├── __init__.py
 │   │   │   └── main.py
-│   │   ├── tests/
-│   │   │   └── .gitkeep
+│   │   ├── Dockerfile
 │   │   └── README.md
 │   ├── clustering/
 │   │   ├── app/
-│   │   │   ├── pipelines/
-│   │   │   │   └── .gitkeep
 │   │   │   ├── __init__.py
 │   │   │   └── main.py
-│   │   ├── tests/
-│   │   │   └── .gitkeep
+│   │   ├── Dockerfile
 │   │   └── README.md
 │   ├── database_api/
 │   │   ├── app/
+│   │   │   ├── api/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── admin.py
+│   │   │   │   ├── calisthenics_shadow.py
+│   │   │   │   ├── datalake.py
+│   │   │   │   ├── demo_observation_reset.py
+│   │   │   │   ├── derived.py
+│   │   │   │   ├── forward.py
+│   │   │   │   ├── internal.py
+│   │   │   │   ├── pipeline.py
+│   │   │   │   ├── public.py
+│   │   │   │   └── time_series.py
+│   │   │   ├── db/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── connection.py
+│   │   │   │   ├── observation_backups.py
+│   │   │   │   └── session.py
 │   │   │   ├── repositories/
-│   │   │   │   └── .gitkeep
-│   │   │   ├── routes/
-│   │   │   │   └── .gitkeep
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── bronze.py
+│   │   │   │   ├── common.py
+│   │   │   │   ├── gold.py
+│   │   │   │   ├── models.py
+│   │   │   │   └── silver.py
+│   │   │   ├── schemas/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── analytics.py
+│   │   │   │   ├── common.py
+│   │   │   │   ├── ml.py
+│   │   │   │   └── observations.py
 │   │   │   ├── __init__.py
-│   │   │   └── main.py
-│   │   ├── tests/
-│   │   │   └── .gitkeep
-│   │   └── README.md
+│   │   │   ├── arrival_relay.py
+│   │   │   ├── config.py
+│   │   │   ├── main.py
+│   │   │   └── security.py
+│   │   ├── contracts/
+│   │   │   ├── examples.json
+│   │   │   └── openapi.json
+│   │   ├── scripts/
+│   │   │   ├── export_openapi.py
+│   │   │   ├── http_rollback.py
+│   │   │   ├── inspect_db.py
+│   │   │   ├── rollback_integration.py
+│   │   │   └── smoke_read.py
+│   │   ├── README.md
+│   │   ├── requirements-dev.txt
+│   │   └── requirements.txt
 │   ├── ingestion/
 │   │   ├── app/
+│   │   │   ├── jobs/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── backfill.py
+│   │   │   │   ├── orphans.py
+│   │   │   │   ├── poll.py
+│   │   │   │   └── reconcile.py
 │   │   │   ├── network/
-│   │   │   │   ├── .gitkeep
 │   │   │   │   └── http_client.py
-│   │   │   ├── pipelines/
-│   │   │   │   └── .gitkeep
 │   │   │   ├── providers/
-│   │   │   │   ├── .gitkeep
 │   │   │   │   ├── cdip.py
 │   │   │   │   ├── noaa.py
 │   │   │   │   └── open_meteo.py
 │   │   │   ├── scheduler/
-│   │   │   │   ├── .gitkeep
 │   │   │   │   └── polling.py
+│   │   │   ├── services/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── datalake_export.py
+│   │   │   │   └── ingest_pipeline.py
 │   │   │   ├── __init__.py
 │   │   │   └── main.py
-│   │   ├── tests/
-│   │   │   └── .gitkeep
+│   │   ├── scripts/
+│   │   │   ├── __init__.py
+│   │   │   ├── archive_raw.py
+│   │   │   ├── archive_revisions.py
+│   │   │   ├── bounded_backfill.py
+│   │   │   ├── discover_history.py
+│   │   │   ├── export_coverage_report.py
+│   │   │   ├── historical_backfill.py
+│   │   │   ├── prune_duplicate_raw.py
+│   │   │   ├── publish_history_manifest.py
+│   │   │   ├── replay.py
+│   │   │   └── scheduled_history_reconcile.py
+│   │   ├── Dockerfile
 │   │   └── README.md
 │   ├── prediction/
 │   │   ├── app/
-│   │   │   ├── inference/
-│   │   │   │   └── .gitkeep
 │   │   │   ├── __init__.py
 │   │   │   └── main.py
-│   │   ├── tests/
-│   │   │   └── .gitkeep
+│   │   ├── Dockerfile
 │   │   └── README.md
-│   └── preprocessing/
+│   ├── preprocessing/
+│   │   ├── app/
+│   │   │   ├── features/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── daily.py
+│   │   │   ├── jobs/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── gaps.py
+│   │   │   │   ├── gold.py
+│   │   │   │   ├── quality.py
+│   │   │   │   └── rebuild_days.py
+│   │   │   ├── quality/
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── checks.py
+│   │   │   ├── __init__.py
+│   │   │   └── main.py
+│   │   ├── scripts/
+│   │   │   ├── __init__.py
+│   │   │   └── review.py
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   └── scheduler/
 │       ├── app/
-│       │   ├── pipelines/
-│       │   │   └── .gitkeep
 │       │   ├── __init__.py
-│       │   └── main.py
-│       ├── tests/
-│       │   └── .gitkeep
+│       │   ├── main.py
+│       │   ├── runner.py
+│       │   └── tl07b_runner.py
+│       ├── Dockerfile
 │       └── README.md
 ├── shared/
 │   ├── config/
@@ -143,23 +307,85 @@ waimea-wavecast-backend/
 ├── storage/
 │   └── gcs_layout.md
 ├── tests/
-│   ├── e2e/
-│   │   └── .gitkeep
 │   ├── integration/
-│   │   └── .gitkeep
+│   │   ├── test_ingest_pipeline.py
+│   │   ├── test_observation_reset_backups.py
+│   │   └── test_rebuild_days.py
+│   ├── tl01/
+│   │   ├── integration/
+│   │   │   ├── test_migrations.py
+│   │   │   └── test_upsert.py
+│   │   └── test_api.py
+│   ├── tl05/
+│   │   └── test_tl05.py
+│   ├── tl06/
+│   │   ├── test_http_gateway.py
+│   │   ├── test_ingestion.py
+│   │   ├── test_noaa_http.py
+│   │   └── test_silver_contract.py
+│   ├── tl07a/
+│   │   └── test_algorithms.py
+│   ├── tl07b/
+│   │   ├── test_bounded_backfill.py
+│   │   ├── test_orphan_recovery.py
+│   │   ├── test_pipeline_quality.py
+│   │   └── test_scheduler_recovery.py
+│   ├── tl08a/
+│   │   ├── test_datalake_export.py
+│   │   └── test_scheduled_publication.py
+│   ├── tl08b/
+│   │   ├── test_cluster_recovery.py
+│   │   ├── test_daily_horizons.py
+│   │   ├── test_short_horizons.py
+│   │   └── test_walkforward.py
+│   ├── tl08c/
+│   │   ├── test_calisthenics_15.py
+│   │   ├── test_calisthenics_shadow.py
+│   │   ├── test_calisthenics_v1.py
+│   │   ├── test_forward_runner.py
+│   │   ├── test_gap_holdout.py
+│   │   └── test_retrain.py
 │   └── unit/
-│       ├── .gitkeep
+│       ├── test_daily_features.py
+│       ├── test_noaa_normalize.py
+│       ├── test_noaa_parser.py
+│       ├── test_priority_hash_gcs.py
 │       └── test_timezone.py
 ├── training/
-│   ├── notebooks/
-│   │   └── .gitkeep
-│   └── scripts/
-│       └── .gitkeep
+│   ├── __init__.py
+│   ├── build_dataset.py
+│   ├── calisthenics_15.py
+│   ├── calisthenics_15_milestone.py
+│   ├── calisthenics_next_day.py
+│   ├── calisthenics_repack_v1.py
+│   ├── calisthenics_shadow.py
+│   ├── calisthenics_v1.py
+│   ├── cli.py
+│   ├── evaluate.py
+│   ├── gap_holdout.py
+│   ├── local_draft_classification.py
+│   ├── run.py
+│   ├── tl08b_classification_audit.py
+│   ├── tl08b_cluster_assignments.py
+│   ├── tl08b_daily_cli.py
+│   ├── tl08b_daily_horizons.py
+│   ├── tl08b_publish_evidence.py
+│   ├── tl08b_short_cli.py
+│   ├── tl08b_short_horizons.py
+│   ├── tl08b_walkforward.py
+│   ├── tl08b_walkforward_cli.py
+│   ├── tl08c_forward_runner.py
+│   ├── tl08c_retrain.py
+│   ├── tl08c_retrain_cli.py
+│   ├── train_classification.py
+│   ├── train_clustering.py
+│   └── train_regression.py
 ├── .dockerignore
 ├── .env.example
 ├── .env.production.example
 ├── .gitignore
-├── compose.yaml
 ├── Dockerfile
-├── pyproject.toml
-└── README.md
+├── PROJECT_TREE.txt
+├── README.md
+├── compose.yaml
+└── pyproject.toml

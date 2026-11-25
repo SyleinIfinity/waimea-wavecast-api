@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     demo_max_days: int = 30
     demo_delete_enabled: bool = False
     demo_backup_confirmed: bool = False
+    observation_reset_production_enabled: bool = False
+    observation_reset_production_backup_confirmed: bool = False
+    observation_reset_password_sha256: str = ""
+    gcs_backup_bucket: str = ""
+    cluster_rebuild_model_id: int = 0
+    local_draft_classification_enabled: bool = False
 
 
 @lru_cache
