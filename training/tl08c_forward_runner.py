@@ -61,6 +61,25 @@ def short_features(rows: list[dict], issued_at: datetime):
     return None
 
 
+def ready_daily_row(row: dict | None, issued_at: datetime) -> bool:
+    return bool(
+        row is not None
+        and row.get("gold_readiness") == "GOLD_READY"
+        and row.get("median_wave_height_m") is not None
+        and row.get("gold_median_value") is not None
+        and abs(float(row["median_wave_height_m"]) - float(row["gold_median_value"])) <= 1e-6
+        and (row.get("valid_wave_count") or 0) > 0
+        and (row.get("coverage_ratio") or 0) >= .9
+        and not any(row.get(key) for key in ("suspect_count", "rejected_count", "unverified_count", "imputed_count"))
+        and row.get("gold_period_end_at")
+        and row.get("gold_computed_at")
+        and utc(row["gold_period_end_at"]) <= utc(row["gold_computed_at"]) <= issued_at
+        and row.get("calculated_at")
+        and utc(row["gold_period_end_at"]) <= utc(row["calculated_at"]) <= issued_at
+        and (not row.get("source_data_max_updated_at") or utc(row["source_data_max_updated_at"]) <= issued_at)
+    )
+
+
 def daily_features(rows: list[dict], issued_at: datetime):
     by_day = {date.fromisoformat(str(row["date_hst"])): row for row in rows}
     # Use the latest complete HST day with seven continuous QC Gold-ready days.
@@ -68,23 +87,7 @@ def daily_features(rows: list[dict], issued_at: datetime):
         if day_bounds(anchor_day)[1] > issued_at:
             continue
         history = [by_day.get(anchor_day-timedelta(days=i)) for i in range(7)]
-        if any(row is None for row in history):
-            continue
-        if any((row.get("gold_readiness") != "GOLD_READY"
-                or row.get("median_wave_height_m") is None
-                or row.get("gold_median_value") is None
-                or abs(float(row["median_wave_height_m"])-float(row["gold_median_value"])) > 1e-6
-                or (row.get("valid_wave_count") or 0) <= 0
-                or (row.get("coverage_ratio") or 0) < .9
-                or any(row.get(k) for k in ("suspect_count","rejected_count","unverified_count","imputed_count"))
-                or not row.get("gold_computed_at")
-                or utc(row["gold_computed_at"]) < utc(row["gold_period_end_at"])
-                or utc(row["gold_computed_at"]) > issued_at
-                or not row.get("calculated_at")
-                or utc(row["calculated_at"]) < utc(row["gold_period_end_at"])
-                or utc(row["calculated_at"]) > issued_at
-                or (row.get("source_data_max_updated_at") and utc(row["source_data_max_updated_at"]) > issued_at))
-               for row in history):
+        if not all(ready_daily_row(row, issued_at) for row in history):
             continue
         # build_samples' retrospective T+1 02:00 cutoff is intentionally
         # replaced by the real issued_at check above for forward issuance.

@@ -20,12 +20,13 @@ from packages.ml.gateway import HttpMLGateway
 from packages.ml.worker import WorkerSettings
 from services.database_api.app.api.forward import day_bounds
 from training.calisthenics_15 import _connect
+from training.calisthenics_next_day import INPUT_CUTOFF_HOUR_HST, PUBLICATION_WAIT, input_cutoff, live_features
 from training.calisthenics_v1 import OnlineWaveModel, SHORT_FEATURES, HST
 from training.tl08c_forward_runner import daily_features, short_features, utc
 
 logger = logging.getLogger(__name__)
 HORIZONS = ("30min", "1d", "7d", "30d")
-LEAD_DAYS = {"1d":1,"7d":7,"30d":30}
+LEAD_DAYS = {"7d":7,"30d":30}
 
 
 def _sha(payload) -> str:
@@ -34,9 +35,16 @@ def _sha(payload) -> str:
 
 
 def _current_model(conn, horizon: str, store: ModelStore):
+    params = (f"calisthenics 1.5 / {horizon}",)
+    cutoff_filter = ""
+    if horizon == "1d":
+        cutoff_filter = "AND hyperparameters->>'input_cutoff_hour_hst'=%s "
+        params += (str(INPUT_CUTOFF_HOUR_HST),)
     row = conn.execute("SELECT * FROM gold.model_registry WHERE model_name=%s "
-        "AND status='draft' ORDER BY created_at DESC,model_id DESC LIMIT 1",
-        (f"calisthenics 1.5 / {horizon}",)).fetchone()
+        "AND status='draft' " + cutoff_filter + "ORDER BY created_at DESC,model_id DESC LIMIT 1",
+        params).fetchone()
+    if horizon == "1d" and row is None:
+        return None
     if row is None or row["task_type"] != "regression":
         raise RuntimeError(f"Calisthenics 1.5 {horizon} draft model unavailable")
     model, manifest = store.load(row)
@@ -44,6 +52,8 @@ def _current_model(conn, horizon: str, store: ModelStore):
     if type(model) is not OnlineWaveModel or manifest.get("horizon") != horizon \
             or manifest.get("feature_names") != list(names):
         raise RuntimeError(f"Calisthenics 1.5 {horizon} artifact mismatch")
+    if horizon == "1d" and manifest.get("input_cutoff_hour_hst") != INPUT_CUTOFF_HOUR_HST:
+        raise RuntimeError("Calisthenics 1.5 next-day artifact cutoff mismatch")
     return row, model
 
 
@@ -53,6 +63,12 @@ def _reserve(conn, model_row: dict, horizon: str, issued: datetime,
              target_day: date | None = None, target_kind: str = "instant_wvht") -> dict:
     if not anchor <= issued < target or not isfinite(float(features[0])):
         raise ValueError("invalid prospective forecast times or baseline")
+    if horizon == "1d":
+        issue_day = issued.astimezone(HST).date()
+        tomorrow = issue_day + timedelta(days=1)
+        if (anchor_day != issue_day or target_day != tomorrow
+                or anchor != input_cutoff(issue_day) or target != day_bounds(tomorrow)[1]):
+            raise ValueError("1d forecast must target the next Hawaii day")
     prediction = float(model_row["loaded_model"].predict([features])[0])
     if not isfinite(prediction) or prediction < 0:
         raise ValueError("invalid shadow prediction")
@@ -108,6 +124,35 @@ def recover(conn, store):
     return recovered
 
 
+def issue_tomorrow(conn, gateway, store, now: datetime, daily: list[dict]) -> dict | None:
+    today = now.astimezone(HST).date()
+    anchor = input_cutoff(today)
+    if now < anchor + PUBLICATION_WAIT:
+        return None
+    target_day = today + timedelta(days=1)
+    if conn.execute("SELECT 1 FROM gold.calisthenics_shadow_forecasts "
+                    "WHERE horizon='1d' AND anchor_at=%s AND target_date_hst=%s LIMIT 1",
+                    (anchor, target_day)).fetchone():
+        return None
+    observations = gateway.get_observations(day_bounds(today)[0], anchor)
+    found = live_features(today, daily, observations, now)
+    if found is None:
+        return None
+    current = _current_model(conn, "1d", store)
+    if current is None:
+        logger.info("No day-ahead Calisthenics 1.5 model for the Hawaii noon cutoff")
+        return None
+    metadata, model = current
+    features, source_sha = found
+    row = _reserve(conn, {**metadata, "loaded_model": model}, "1d", now, anchor,
+                   day_bounds(target_day)[1], features, source_sha, today, target_day,
+                   "hst_day_median_wvht")
+    persisted = _persist(conn, store, row)
+    conn.commit()
+    return {"horizon": "1d", "forecast_id": row["forecast_id"], "issued": int(persisted),
+            "target_date_hst": target_day.isoformat()}
+
+
 def issue(conn, gateway, store, now: datetime) -> list[dict]:
     issued=[]
     observations=gateway.get_observations(now-timedelta(hours=5),now+timedelta(seconds=1))
@@ -128,6 +173,9 @@ def issue(conn, gateway, store, now: datetime) -> list[dict]:
     today=now.astimezone(HST).date()
     rows=gateway._request("GET","/internal/v1/forward/daily-inputs",params={
         "start_hst":str(today-timedelta(days=8)),"end_hst":str(today)})["data"]
+    day_ahead = issue_tomorrow(conn, gateway, store, now, rows)
+    if day_ahead is not None:
+        issued.append(day_ahead)
     daily=daily_features(rows,now)
     if daily:
         anchor_day,features,source_sha=daily
@@ -135,10 +183,7 @@ def issue(conn, gateway, store, now: datetime) -> list[dict]:
         for horizon,days in LEAD_DAYS.items():
             target_day=anchor_day+timedelta(days=days)
             target_start,target=day_bounds(target_day)
-            if horizon=="1d":
-                if now >= target_start+timedelta(hours=4):
-                    continue
-            elif now >= target_start:
+            if now >= target_start:
                 continue
             metadata,model=_current_model(conn,horizon,store)
             kind="next_30_hst_days_mean_wvht" if horizon=="30d" else "hst_day_median_wvht"
@@ -154,8 +199,8 @@ def issue(conn, gateway, store, now: datetime) -> list[dict]:
 def _daily_truth(conn, row: dict):
     g=conn.execute("SELECT g.*,d.median_wave_height_m AS daily_median,d.coverage_ratio,"
         "d.suspect_count AS daily_suspect,"
-        "d.rejected_count AS daily_rejected,d.unverified_count AS daily_unverified,"
-        "d.imputed_count AS daily_imputed FROM gold.resolution_metrics g "
+        "d.rejected_count AS daily_rejected,d.unverified_count AS daily_unverified "
+        "FROM gold.resolution_metrics g "
         "JOIN silver.daily_wave_features d ON d.station_id=g.station_id "
         "AND d.date_hst=(g.period_start_at AT TIME ZONE 'Pacific/Honolulu')::date "
         "WHERE g.station_id='51201' AND g.metric_code='WVHT' AND g.resolution='daily' "
@@ -164,7 +209,7 @@ def _daily_truth(conn, row: dict):
     if not g or g["readiness"]!="GOLD_READY" or g["median_value"] is None \
             or g["daily_median"] is None \
             or g["computed_at"]<row["target_at"] or (g["coverage_ratio"] or 0)<.9 \
-            or any(g[key] for key in ("daily_suspect","daily_rejected","daily_unverified","daily_imputed")) \
+            or any(g[key] for key in ("daily_suspect","daily_rejected","daily_unverified")) \
             or abs(float(g["median_value"])-float(g["daily_median"]))>1e-6:
         return None
     actual=float(g["median_value"])
@@ -178,7 +223,7 @@ def _thirty_day_truth(conn, row: dict):
     first=row["anchor_date_hst"]+timedelta(days=1)
     last=row["anchor_date_hst"]+timedelta(days=30)
     rows=conn.execute("SELECT d.date_hst,d.median_wave_height_m,d.coverage_ratio,"
-        "d.suspect_count,d.rejected_count,d.unverified_count,d.imputed_count,"
+        "d.suspect_count,d.rejected_count,d.unverified_count,"
         "g.median_value,g.readiness,g.valid_sample_count,g.calculation_version,g.computed_at "
         "FROM silver.daily_wave_features d JOIN gold.resolution_metrics g "
         "ON g.station_id=d.station_id AND g.metric_code='WVHT' AND g.resolution='daily' "
@@ -190,7 +235,7 @@ def _thirty_day_truth(conn, row: dict):
         if item["readiness"]!="GOLD_READY" or item["median_value"] is None \
                 or item["median_wave_height_m"] is None \
                 or (item["coverage_ratio"] or 0)<.9 \
-                or any(item[key] for key in ("suspect_count","rejected_count","unverified_count","imputed_count")):
+                or any(item[key] for key in ("suspect_count","rejected_count","unverified_count")):
             continue
         if abs(float(item["median_value"])-float(item["median_wave_height_m"]))>1e-6:
             continue

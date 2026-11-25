@@ -44,3 +44,34 @@ def test_pinned_replay_resumes_downstream_without_new_noaa_fetch(monkeypatch):
     assert "/internal/v1/derived/reconcile" in paths
     assert "/internal/v1/preprocessing/gold/rebuild" in paths
     assert b'"generation":123' in next(body for path, body in calls if path.endswith("/ingestion/replay"))
+
+
+def test_kmeans_retries_after_successful_cycle_even_without_new_silver(monkeypatch):
+    monkeypatch.setenv("CLUSTER_REBUILD_MODEL_ID", "10")
+    monkeypatch.setenv("INTERNAL_API_TOKEN", "isolated-token")
+    paths = []
+    slot = datetime(2026, 11, 20, 2, tzinfo=timezone.utc)
+
+    def handler(request):
+        path = request.url.path
+        paths.append(path)
+        if path.endswith("/cycles/due"):
+            return httpx.Response(200, json={"slots": []})
+        if path.endswith("/cycles/claim"):
+            return httpx.Response(200, json={"claimed": True, "lease_token": "test"})
+        if path.endswith("/ingestion/poll"):
+            return httpx.Response(200, json={"success": True})
+        if path.endswith("/cycles/finish"):
+            return httpx.Response(200, json={"status": "SUCCESS"})
+        assert path.endswith("/clusters/rebuild")
+        if paths.count(path) == 1:
+            return httpx.Response(503)
+        return httpx.Response(200, json={"status": "rebuilt"})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        assert run_once(slot, client)["status"] == "SUCCESS"
+        assert run_once(slot.replace(minute=30), client)["status"] == "SUCCESS"
+
+    assert paths[-2:] == ["/internal/v1/pipeline/cycles/finish",
+                          "/internal/v1/preprocessing/clusters/rebuild"]
+    assert paths.count("/internal/v1/preprocessing/clusters/rebuild") == 2

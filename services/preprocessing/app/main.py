@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import secrets
 from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
@@ -19,6 +20,8 @@ class Settings(BaseSettings):
     app_env: str = "development"
     database_api_url: str = "http://database-api:8000"
     internal_api_token: str = ""
+    cluster_rebuild_model_id: int = 0
+    gcs_models_bucket: str = "waimea-noaa"
 
 
 class RangeRequest(BaseModel):
@@ -93,6 +96,25 @@ def create_app(settings: Settings | None = None, gateway=None) -> FastAPI:
             raise HTTPException(503, "database gateway unavailable")
         return rebuild_gold(gateway, year=req.year,
                             changed_from=req.changed_from, changed_to=req.changed_to)
+
+    @app.post("/internal/v1/preprocessing/clusters/rebuild", dependencies=[Depends(auth)])
+    def clusters():
+        if settings.cluster_rebuild_model_id <= 0:
+            raise HTTPException(503, "clustering recovery model is not configured")
+
+        from packages.gcs.client import RealGCSClient
+        from packages.ml.artifacts import ModelStore
+        from packages.ml.gateway import HttpMLGateway
+        from training.tl08b_cluster_assignments import rebuild_assignments
+
+        # Use closed Hawaiian days and match the recent history shown by the UI.
+        end = datetime.now(ZoneInfo("Pacific/Honolulu")).date() - timedelta(days=1)
+        return rebuild_assignments(
+            HttpMLGateway(settings.database_api_url, settings.internal_api_token),
+            ModelStore(RealGCSClient(), settings.gcs_models_bucket),
+            model_id=settings.cluster_rebuild_model_id,
+            start_hst=end - timedelta(days=59), end_hst=end,
+        )
 
     @app.post("/internal/v1/preprocessing/gaps/reconcile", dependencies=[Depends(auth)])
     def gaps(req: GapRequest):

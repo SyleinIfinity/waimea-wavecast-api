@@ -108,7 +108,17 @@ def run_once(now: datetime | None = None, client=None) -> dict:
         except Exception as exc:
             finish.setdefault("error_class", type(exc).__name__)
             logger.exception("TL07-B cycle failed slot=%s stage=%s", slot, finish["failure_stage"])
-        return _request(client, "POST", db + "/cycles/finish", token, finish)
+        completed = _request(client, "POST", db + "/cycles/finish", token, finish)
+        if completed.get("status") == "SUCCESS" and os.environ.get("CLUSTER_REBUILD_MODEL_ID", "0") != "0":
+            # Reset clears the cycle ledger and Gold assignments. The next
+            # successful cycle rebuilds daily inputs first, then reconciles K-means.
+            # An independent failure retries on the next successful cycle.
+            try:
+                result = _request(client, "POST", preprocessing + "/clusters/rebuild", token)
+                logger.info("K-means reconciliation: %s", result)
+            except Exception:
+                logger.exception("K-means reconciliation failed; will retry on the next successful cycle")
+        return completed
     finally:
         if owned:
             client.close()
